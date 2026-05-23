@@ -1,0 +1,14 @@
+{
+    "name": "cieplo-zimno-server",
+    "version": "0.1.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "node --watch index.js",
+        "start": "node index.js"
+    },
+    "dependencies": {
+        "express": "^4.19.2",
+        "sql.js": "^1.13.0"
+    }
+}

@@ -1,0 +1,58 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&family=Sora:wght@400;500;600;700;800&display=swap');
+
+:root {
+  color-scheme: dark;
+  --bg: #0b0b0d;
+  --screen: rgba(18, 18, 22, 0.94);
+  --card: rgba(30, 30, 34, 0.92);
+  --card-strong: rgba(37, 37, 42, 0.95);
+  --text: #f5f0ea;
+  --muted: #b4aea7;
+  --border: rgba(255, 255, 255, 0.08);
+  --accent-hot: #ff5a4f;
+  --accent-warm: #f6b28c;
+  --accent-cold: #4a82ff;
+  --accent-rose: #f7b3a5;
+  --shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+  --soft-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+  --heading-font: 'Sora', sans-serif;
+  --body-font: 'Manrope', sans-serif;
+
+  font-family: var(--body-font);
+  color: var(--text);
+  background: var(--bg);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+#root {
+  min-height: 100vh;
+}
