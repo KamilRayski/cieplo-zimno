@@ -16,36 +16,21 @@ const withDelay = (delay: string): DelayStyle => ({ '--delay': delay })
 
 const weekDays = ['PN', 'WT', 'ŚR', 'CZ', 'PT', 'SB', 'ND']
 
-const calendarDays = [
-  { day: 30, muted: true },
-  { day: 1, dot: 'hot' },
-  { day: 2, dot: 'cold' },
-  { day: 3, dot: 'warm' },
-  { day: 4, dot: 'hot' },
-  { day: 5, dot: 'hot' },
-  { day: 6, dot: 'cold' },
-  { day: 7, dot: 'warm' },
-  { day: 8, dot: 'hot' },
-  { day: 9, dot: 'hot' },
-  { day: 10, dot: 'cold' },
-  { day: 11, dot: 'hot' },
-  { day: 12, dot: 'hot' },
-  { day: 13, dot: 'warm' },
-  { day: 14, active: true, dot: 'hot' },
-  { day: 15 },
-  { day: 16 },
-  { day: 17 },
-  { day: 18 },
-  { day: 19 },
-  { day: 20 },
-  { day: 21, muted: true },
-  { day: 22, muted: true },
-  { day: 23, muted: true },
-  { day: 24, muted: true },
-  { day: 25, muted: true },
-  { day: 26, muted: true },
-  { day: 27, muted: true },
+const monthNames = [
+  'STYCZEŃ', 'LUTY', 'MARZEC', 'KWIECIEŃ', 'MAJ', 'CZERWIEC',
+  'LIPIEC', 'SIERPIEŃ', 'WRZESIEŃ', 'PAŹDZIERNIK', 'LISTOPAD', 'GRUDZIEŃ'
 ]
+
+const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate()
+const getFirstDayOfMonth = (year: number, month: number) => {
+  const day = new Date(year, month, 1).getDay()
+  return day === 0 ? 6 : day - 1
+}
+
+const toIsoLocal = (d: Date) => {
+  const tzOffset = d.getTimezoneOffset() * 60000
+  return new Date(d.getTime() - tzOffset).toISOString().slice(0, 10)
+}
 
 type Guess = {
   word: string
@@ -79,6 +64,7 @@ type LeaderboardEntry = {
 }
 
 type ArchiveEntry = {
+  rawDate: string
   date: string
   day: string
   label: string
@@ -86,6 +72,7 @@ type ArchiveEntry = {
   rank: string
   percent: string
   progress: number
+  temperature: number
   tone: 'hot' | 'warm' | 'cold'
 }
 
@@ -142,6 +129,9 @@ const formatTemperature = (temperature: number) => `${temperature}°C`
 
 const formatAttempts = (attempts: number) => `${attempts} prób`
 
+const getAvatarUrl = (seed: string) =>
+  `https://api.dicebear.com/9.x/micah/svg?seed=${encodeURIComponent(seed)}&backgroundColor=transparent`
+
 const getSessionId = () => {
   try {
     return localStorage.getItem('sessionId')
@@ -161,6 +151,14 @@ const getAuthSessionId = () => {
 const setSessionId = (sessionId: string) => {
   try {
     localStorage.setItem('sessionId', sessionId)
+  } catch {
+    // Ignore write errors (e.g. private mode).
+  }
+}
+
+const clearSessionId = () => {
+  try {
+    localStorage.removeItem('sessionId')
   } catch {
     // Ignore write errors (e.g. private mode).
   }
@@ -226,75 +224,109 @@ function App() {
         <Route path="/login" element={<AuthScreen mode="login" />} />
         <Route path="/register" element={<AuthScreen mode="register" />} />
         <Route
+          path="/change-password"
+          element={
+            <RequireAuth>
+              <ChangePasswordScreen />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/contact"
+          element={
+            <RequireAuth>
+              <ContactScreen />
+            </RequireAuth>
+          }
+        />
+        <Route
           path="/home"
           element={
-            <MainLayout>
-              <HomeScreen />
-            </MainLayout>
+            <RequireAuth>
+              <MainLayout>
+                <HomeScreen />
+              </MainLayout>
+            </RequireAuth>
           }
         />
         <Route
           path="/game"
           element={
-            <MainLayout>
-              <GameScreen />
-            </MainLayout>
+            <RequireAuth>
+              <MainLayout>
+                <GameScreen />
+              </MainLayout>
+            </RequireAuth>
           }
         />
         <Route
           path="/ranking"
           element={
-            <MainLayout>
-              <RankingScreen />
-            </MainLayout>
+            <RequireAuth>
+              <MainLayout>
+                <RankingScreen />
+              </MainLayout>
+            </RequireAuth>
           }
         />
         <Route
           path="/archive"
           element={
-            <MainLayout>
-              <ArchiveScreen />
-            </MainLayout>
+            <RequireAuth>
+              <MainLayout>
+                <ArchiveScreen />
+              </MainLayout>
+            </RequireAuth>
           }
         />
         <Route
           path="/calendar"
           element={
-            <MainLayout>
-              <CalendarScreen />
-            </MainLayout>
+            <RequireAuth>
+              <MainLayout>
+                <CalendarScreen />
+              </MainLayout>
+            </RequireAuth>
           }
         />
         <Route
           path="/info"
           element={
-            <MainLayout>
-              <InfoScreen />
-            </MainLayout>
+            <RequireAuth>
+              <MainLayout>
+                <InfoScreen />
+              </MainLayout>
+            </RequireAuth>
           }
         />
         <Route
           path="/settings"
           element={
-            <MainLayout>
-              <SettingsScreen />
-            </MainLayout>
+            <RequireAuth>
+              <MainLayout>
+                <SettingsScreen />
+              </MainLayout>
+            </RequireAuth>
           }
         />
         <Route
           path="/friends"
           element={
-            <MainLayout>
-              <FriendsScreen />
-            </MainLayout>
+            <RequireAuth>
+              <MainLayout>
+                <FriendsScreen />
+              </MainLayout>
+            </RequireAuth>
           }
         />
         <Route
           path="/result"
           element={
-            <MainLayout showHeader={false}>
-              <ResultScreen />
-            </MainLayout>
+            <RequireAuth>
+              <MainLayout showHeader={false}>
+                <ResultScreen />
+              </MainLayout>
+            </RequireAuth>
           }
         />
       </Routes>
@@ -303,6 +335,61 @@ function App() {
 }
 
 export default App
+
+function RequireAuth({ children }: { children: ReactNode }) {
+  const [status, setStatus] = useState<
+    'checking' | 'authorized' | 'unauthorized'
+  >('checking')
+
+  useEffect(() => {
+    const authSessionId = getAuthSessionId()
+    if (!authSessionId) {
+      setStatus('unauthorized')
+      return
+    }
+
+    const checkAuth = async () => {
+      try {
+        const data = await apiRequest<AuthMeResponse>(
+          `/auth/me?sessionId=${authSessionId}`,
+        )
+        if (data.user) {
+          setStatus('authorized')
+        } else {
+          clearAuthSessionId()
+          clearSessionId()
+          setStatus('unauthorized')
+        }
+      } catch {
+        clearAuthSessionId()
+        clearSessionId()
+        setStatus('unauthorized')
+      }
+    }
+
+    void checkAuth()
+  }, [])
+
+  if (status === 'checking') {
+    return (
+      <div className="screen auth-screen">
+        <div className="auth-hero">
+          <Logo />
+          <p className="auth-tagline">SPRAWDZAM LOGOWANIE</p>
+        </div>
+        <div className="card auth-card">
+          <div className="game-status">Ładuję profil...</div>
+        </div>
+      </div>
+    )
+  }
+
+  if (status === 'unauthorized') {
+    return <Navigate to="/login" replace />
+  }
+
+  return <>{children}</>
+}
 
 function MainLayout({
   children,
@@ -385,11 +472,15 @@ function AuthScreen({ mode }: { mode: 'login' | 'register' }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [status, setStatus] = useState<'idle' | 'loading'>('idle')
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     setError(null)
+    setShowPassword(false)
+    setShowConfirmPassword(false)
   }, [mode])
 
   const isLoading = status === 'loading'
@@ -502,15 +593,22 @@ function AuthScreen({ mode }: { mode: 'login' | 'register' }) {
                 <LockIcon />
               </span>
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 disabled={isLoading}
               />
-              <span className="field-trailing" aria-hidden="true">
+              <button
+                className={`field-trailing${showPassword ? ' is-active' : ''}`}
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? 'Ukryj hasło' : 'Pokaż hasło'}
+                aria-pressed={showPassword}
+                disabled={isLoading}
+              >
                 <EyeIcon />
-              </span>
+              </button>
             </label>
           </div>
           {isRegister ? (
@@ -521,15 +619,22 @@ function AuthScreen({ mode }: { mode: 'login' | 'register' }) {
                   <LockIcon />
                 </span>
                 <input
-                  type="password"
+                  type={showConfirmPassword ? 'text' : 'password'}
                   placeholder="••••••••"
                   value={confirmPassword}
                   onChange={(event) => setConfirmPassword(event.target.value)}
                   disabled={isLoading}
                 />
-                <span className="field-trailing" aria-hidden="true">
+                <button
+                  className={`field-trailing${showConfirmPassword ? ' is-active' : ''}`}
+                  type="button"
+                  onClick={() => setShowConfirmPassword((prev) => !prev)}
+                  aria-label={showConfirmPassword ? 'Ukryj hasło' : 'Pokaż hasło'}
+                  aria-pressed={showConfirmPassword}
+                  disabled={isLoading}
+                >
                   <EyeIcon />
-                </span>
+                </button>
               </label>
             </div>
           ) : null}
@@ -554,17 +659,300 @@ function AuthScreen({ mode }: { mode: 'login' | 'register' }) {
   )
 }
 
+function ChangePasswordScreen() {
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle')
+  const [error, setError] = useState<string | null>(null)
+
+  const isLoading = status === 'loading'
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (isLoading) return
+
+    if (!currentPassword) {
+      setError('Podaj obecne hasło.')
+      return
+    }
+
+    if (!newPassword) {
+      setError('Podaj nowe hasło.')
+      return
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError('Hasła nie są takie same.')
+      return
+    }
+
+    const sessionId = getAuthSessionId()
+    if (!sessionId) {
+      setError('Brak aktywnej sesji. Zaloguj się ponownie.')
+      return
+    }
+
+    setStatus('loading')
+    setError(null)
+
+    try {
+      await apiRequest<{ ok: boolean }>('/auth/change-password', {
+        method: 'POST',
+        json: {
+          authSessionId: sessionId,
+          currentPassword,
+          newPassword,
+        },
+      })
+      setStatus('success')
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+      setShowCurrentPassword(false)
+      setShowNewPassword(false)
+      setShowConfirmPassword(false)
+    } catch (submitError) {
+      const message =
+        submitError instanceof Error
+          ? submitError.message
+          : 'Nie udało się zmienić hasła. Spróbuj ponownie.'
+      setError(message)
+      setStatus('idle')
+    }
+  }
+
+  return (
+    <div className="screen auth-screen">
+      <div className="auth-hero">
+        <Logo />
+        <p className="auth-tagline">ZMIANA HASŁA</p>
+      </div>
+
+      <div className="card auth-card reveal" style={withDelay('0.1s')}>
+        <h2 className="auth-title">ZMIANA HASŁA</h2>
+        <div className="mini-gradient" aria-hidden="true" />
+        <form className="auth-form" onSubmit={handleSubmit}>
+          {error ? (
+            <div className="game-status game-status--error">{error}</div>
+          ) : null}
+          {status === 'success' ? (
+            <div className="game-status game-status--success">
+              Hasło zostało zmienione.
+            </div>
+          ) : null}
+          <div className="field">
+            <span className="field-label">OBECNE HASŁO</span>
+            <label className="field-control">
+              <span className="field-icon">
+                <LockIcon />
+              </span>
+              <input
+                type={showCurrentPassword ? 'text' : 'password'}
+                placeholder="••••••••"
+                value={currentPassword}
+                onChange={(event) => setCurrentPassword(event.target.value)}
+                disabled={isLoading}
+              />
+              <button
+                className={`field-trailing${showCurrentPassword ? ' is-active' : ''}`}
+                type="button"
+                onClick={() => setShowCurrentPassword((prev) => !prev)}
+                aria-label={
+                  showCurrentPassword ? 'Ukryj hasło' : 'Pokaż hasło'
+                }
+                aria-pressed={showCurrentPassword}
+                disabled={isLoading}
+              >
+                <EyeIcon />
+              </button>
+            </label>
+          </div>
+          <div className="field">
+            <span className="field-label">NOWE HASŁO</span>
+            <label className="field-control">
+              <span className="field-icon">
+                <LockIcon />
+              </span>
+              <input
+                type={showNewPassword ? 'text' : 'password'}
+                placeholder="••••••••"
+                value={newPassword}
+                onChange={(event) => setNewPassword(event.target.value)}
+                disabled={isLoading}
+              />
+              <button
+                className={`field-trailing${showNewPassword ? ' is-active' : ''}`}
+                type="button"
+                onClick={() => setShowNewPassword((prev) => !prev)}
+                aria-label={showNewPassword ? 'Ukryj hasło' : 'Pokaż hasło'}
+                aria-pressed={showNewPassword}
+                disabled={isLoading}
+              >
+                <EyeIcon />
+              </button>
+            </label>
+          </div>
+          <div className="field">
+            <span className="field-label">POWTÓRZ HASŁO</span>
+            <label className="field-control">
+              <span className="field-icon">
+                <LockIcon />
+              </span>
+              <input
+                type={showConfirmPassword ? 'text' : 'password'}
+                placeholder="••••••••"
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                disabled={isLoading}
+              />
+              <button
+                className={`field-trailing${showConfirmPassword ? ' is-active' : ''}`}
+                type="button"
+                onClick={() => setShowConfirmPassword((prev) => !prev)}
+                aria-label={
+                  showConfirmPassword ? 'Ukryj hasło' : 'Pokaż hasło'
+                }
+                aria-pressed={showConfirmPassword}
+                disabled={isLoading}
+              >
+                <EyeIcon />
+              </button>
+            </label>
+          </div>
+          <button className="primary-btn" type="submit" disabled={isLoading}>
+            {isLoading ? 'Przetwarzanie...' : 'Zmień hasło'}
+            <ArrowRightIcon />
+          </button>
+        </form>
+      </div>
+
+      <p className="auth-switch">
+        <Link className="link-accent" to="/settings">
+          Wróć do ustawień
+        </Link>
+      </p>
+    </div>
+  )
+}
+
+function ContactScreen() {
+  const [message, setMessage] = useState('')
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle')
+  const [error, setError] = useState<string | null>(null)
+
+  const isLoading = status === 'loading'
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (isLoading) return
+
+    if (!message.trim()) {
+      setError('Wpisz treść wiadomości.')
+      return
+    }
+
+    setStatus('loading')
+    setError(null)
+
+    try {
+      // Symulacja wysyłania wiadomości
+      await new Promise((resolve) => setTimeout(resolve, 800))
+      setStatus('success')
+      setMessage('')
+    } catch {
+      setError('Wystąpił błąd podczas wysyłania. Spróbuj ponownie.')
+      setStatus('idle')
+    }
+  }
+
+  return (
+    <div className="screen auth-screen">
+      <div className="auth-hero">
+        <Logo />
+        <p className="auth-tagline">KONTAKT</p>
+      </div>
+
+      <div className="card auth-card reveal" style={withDelay('0.1s')}>
+        <h2 className="auth-title">NAPISZ DO NAS</h2>
+        <div className="mini-gradient" aria-hidden="true" />
+        <form className="auth-form" onSubmit={handleSubmit}>
+          {error ? (
+            <div className="game-status game-status--error">{error}</div>
+          ) : null}
+          {status === 'success' ? (
+            <div className="game-status game-status--success">
+              Wiadomość została wysłana. Dziękujemy!
+            </div>
+          ) : null}
+          <div className="field">
+            <span className="field-label">WIADOMOŚĆ</span>
+            <label className="field-control" style={{ alignItems: 'flex-start' }}>
+              <span className="field-icon" style={{ marginTop: '12px' }}>
+                <MessageIcon />
+              </span>
+              <textarea
+                placeholder="Wpisz treść wiadomości..."
+                value={message}
+                onChange={(event) => setMessage(event.target.value)}
+                disabled={isLoading}
+                style={{
+                  flex: 1,
+                  minHeight: '100px',
+                  padding: '12px 0',
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'inherit',
+                  resize: 'vertical',
+                  outline: 'none',
+                  fontFamily: 'inherit',
+                  fontSize: 'inherit'
+                }}
+              />
+            </label>
+          </div>
+          <button className="primary-btn" type="submit" disabled={isLoading}>
+            {isLoading ? 'Wysyłanie...' : 'Wyślij wiadomość'}
+            <ArrowRightIcon />
+          </button>
+        </form>
+      </div>
+
+      <p className="auth-switch">
+        <Link className="link-accent" to="/info">
+          Wróć do informacji
+        </Link>
+      </p>
+    </div>
+  )
+}
+
 function HomeScreen() {
   const [homeData, setHomeData] = useState<HomeData | null>(null)
+  const [archiveEntries, setArchiveEntries] = useState<ArchiveEntry[]>([])
   const [isLoading, setIsLoading] = useState(true)
+
+  const [currentDate, setCurrentDate] = useState(new Date())
+  const [selectedDate, setSelectedDate] = useState(new Date())
 
   useEffect(() => {
     const loadHome = async () => {
       try {
         const sessionId = getSessionId()
+        const authSessionId = getAuthSessionId()
         const query = sessionId ? `?sessionId=${sessionId}` : ''
         const data = await apiRequest<HomeData>(`/home${query}`)
         setHomeData(data)
+
+        if (authSessionId) {
+          const archive = await apiRequest<ArchiveEntry[]>(
+            `/archive?authSessionId=${authSessionId}`,
+          )
+          setArchiveEntries(archive)
+        }
       } catch (error) {
         console.error(error)
       } finally {
@@ -575,34 +963,53 @@ function HomeScreen() {
     void loadHome()
   }, [])
 
-  const bestShot = homeData?.bestShot
+  const handlePrevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))
+  const handleNextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))
+
+  const selectedIso = toIsoLocal(selectedDate)
+  const todayIso = toIsoLocal(new Date())
+  const archiveEntry = archiveEntries.find(e => e.rawDate === selectedIso)
+
   const friends = homeData?.friends ?? []
-  const bestTemp = bestShot ? formatTemperature(bestShot.temperature) : '--'
-  const bestMeta = bestShot
-    ? `Najlepsza temperatura: ${formatAttempts(bestShot.attempts)}`
-    : 'Zagraj pierwszą rundę, by zobaczyć wynik.'
+
+  let bestTemp = '--'
+  let bestMeta = selectedIso > todayIso ? 'Ten dzień jeszcze nie nadszedł.' : 'Brak prób w tym dniu.'
+
+  if (archiveEntry) {
+    bestTemp = formatTemperature(archiveEntry.temperature)
+    bestMeta = `Słowo: ${archiveEntry.word}`
+  } else if (selectedIso === todayIso && homeData?.bestShot) {
+    bestTemp = formatTemperature(homeData.bestShot.temperature)
+    bestMeta = `Najlepsza temperatura: ${formatAttempts(homeData.bestShot.attempts)}`
+  }
 
   return (
     <>
       <div className="page-head">
         <div>
-          <h1 className="page-title">PAŹDZIERNIK 2024</h1>
+          <h1 className="page-title">{monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}</h1>
           <p className="page-subtitle">Twoja kalendarzowa mapa gry.</p>
         </div>
         <div className="pager">
-          <button className="icon-button" type="button" aria-label="Poprzedni">
+          <button className="icon-button" type="button" aria-label="Poprzedni" onClick={handlePrevMonth}>
             <ChevronLeftIcon />
           </button>
-          <button className="icon-button" type="button" aria-label="Następny">
+          <button className="icon-button" type="button" aria-label="Następny" onClick={handleNextMonth}>
             <ChevronRightIcon />
           </button>
         </div>
       </div>
 
-      <CalendarCard compact />
+      <CalendarCard
+        compact
+        currentDate={currentDate}
+        selectedDate={selectedDate}
+        onSelectDate={setSelectedDate}
+        entries={archiveEntries}
+      />
 
       <section className="stack">
-        <div className="section-title">Twoja Próba</div>
+        <div className="section-title">Twoja Próba • {selectedIso}</div>
         <div className="card stat-card reveal" style={withDelay('0.1s')}>
           <div>
             <div className="stat-label">Twój najlepszy strzał</div>
@@ -629,7 +1036,15 @@ function HomeScreen() {
               style={withDelay(`${0.12 + index * 0.06}s`)}
             >
               <div className="list-left">
-                <div className="avatar" aria-hidden="true"></div>
+                <div
+                  className="avatar"
+                  aria-hidden="true"
+                  style={{
+                    backgroundImage: `url('${getAvatarUrl(friend.name)}')`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                  }}
+                />
                 <div>
                   <div className="list-title">{friend.name}</div>
                   <div className="list-sub">{friend.status}</div>
@@ -670,9 +1085,16 @@ function GameScreen() {
     const loadGame = async () => {
       try {
         const stored = getSessionId()
+        const authSessionId = getAuthSessionId()
+        if (!authSessionId) {
+          setError('Zaloguj się, aby rozpocząć grę.')
+          return
+        }
         const payload = await apiRequest<GameStartResponse>('/game/start', {
           method: 'POST',
-          json: stored ? { sessionId: stored } : {},
+          json: stored
+            ? { sessionId: stored, authSessionId }
+            : { authSessionId },
         })
         setSessionIdState(payload.sessionId)
         setSessionId(payload.sessionId)
@@ -691,20 +1113,26 @@ function GameScreen() {
     void loadGame()
   }, [])
 
-  const attemptNumber = Math.min(guesses.length + 1, maxAttempts)
+  const attemptNumber = Math.min(maxAttempts - attemptsLeft + 1, maxAttempts)
   const isGameOver = isWon || attemptsLeft <= 0
   const isBusy = status !== 'ready'
 
   const submitGuess = async () => {
     if (!sessionId || status === 'submitting') return
+    if (isGameOver) return
     const trimmed = input.trim()
     if (!trimmed) return
+    const authSessionId = getAuthSessionId()
+    if (!authSessionId) {
+      setError('Zaloguj się, aby kontynuować grę.')
+      return
+    }
     setStatus('submitting')
     setError(null)
     try {
       const payload = await apiRequest<GameGuessResponse>('/game/guess', {
         method: 'POST',
-        json: { sessionId, guess: trimmed },
+        json: { sessionId, guess: trimmed, authSessionId },
       })
       setGuesses(payload.guesses)
       setIsWon(payload.isWon)
@@ -863,7 +1291,14 @@ function RankingScreen() {
               className="card ranking-hero reveal"
               style={withDelay(`${0.08 + index * 0.08}s`)}
             >
-              <div className="ranking-avatar">
+              <div
+                className="ranking-avatar"
+                style={{
+                  backgroundImage: `url('${getAvatarUrl(item.name)}')`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                }}
+              >
                 <span className="ranking-rank">{item.rank}</span>
               </div>
               <div>
@@ -885,7 +1320,15 @@ function RankingScreen() {
             style={withDelay(`${0.12 + index * 0.06}s`)}
           >
             <div className="ranking-number">{item.rank}</div>
-            <div>
+            <div
+              className="avatar"
+              style={{
+                backgroundImage: `url('${getAvatarUrl(item.name)}')`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }}
+            />
+            <div style={{ flex: 1 }}>
               <div className="list-title">{item.name}</div>
               <div className="list-sub">
                 ŚREDNIA PRÓB: {item.avgAttempts}
@@ -908,9 +1351,14 @@ function ArchiveScreen() {
   useEffect(() => {
     const loadArchive = async () => {
       try {
-        const sessionId = getSessionId()
-        const query = sessionId ? `?sessionId=${sessionId}` : ''
-        const data = await apiRequest<ArchiveEntry[]>(`/archive${query}`)
+        const authSessionId = getAuthSessionId()
+        if (!authSessionId) {
+          setEntries([])
+          return
+        }
+        const data = await apiRequest<ArchiveEntry[]>(
+          `/archive?authSessionId=${authSessionId}`,
+        )
         setEntries(data)
       } catch (error) {
         console.error(error)
@@ -990,41 +1438,154 @@ function ArchiveScreen() {
         )}
       </div>
 
-      <Link className="card action-card" to="/calendar">
-        <div className="action-icon">
-          <CalendarIcon />
+      <Link
+        to="/calendar"
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '16px',
+          background: '#353534',
+          borderRadius: '12px',
+          textDecoration: 'none',
+          marginTop: '16px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <span style={{ color: '#FFB4AA', display: 'flex', width: '20px', height: '20px' }}>
+            <CalendarIcon />
+          </span>
+          <span style={{ color: '#E5E2E1', fontWeight: 700, fontSize: '16px', lineHeight: '24px', letterSpacing: '-0.4px' }}>
+            Zobacz pełny kalendarz
+          </span>
         </div>
-        <span>Zobacz pełny kalendarz</span>
-        <ChevronRightIcon />
+        <span style={{ color: '#C0C6D6', display: 'flex', width: '20px', height: '20px' }}>
+          <ChevronRightIcon />
+        </span>
       </Link>
     </>
   )
 }
 
 function CalendarScreen() {
+  const [archiveEntries, setArchiveEntries] = useState<ArchiveEntry[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  const [currentDate, setCurrentDate] = useState(new Date())
+  const [selectedDate, setSelectedDate] = useState(new Date())
+
+  useEffect(() => {
+    const loadArchive = async () => {
+      try {
+        const authSessionId = getAuthSessionId()
+        if (!authSessionId) return
+        const data = await apiRequest<ArchiveEntry[]>(`/archive?authSessionId=${authSessionId}`)
+        setArchiveEntries(data)
+      } catch (error) {
+        console.error(error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    void loadArchive()
+  }, [])
+
+  const handlePrevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))
+  const handleNextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))
+
+  const selectedIso = toIsoLocal(selectedDate)
+  const todayIso = toIsoLocal(new Date())
+  const archiveEntry = archiveEntries.find(e => e.rawDate === selectedIso)
+
+  let bestTemp = '--'
+  let bestMeta = selectedIso > todayIso ? 'Ten dzień jeszcze nie nadszedł.' : 'Brak prób w tym dniu.'
+
+  if (archiveEntry) {
+    bestTemp = formatTemperature(archiveEntry.temperature)
+    bestMeta = `Słowo: ${archiveEntry.word}`
+  }
+
   return (
     <>
       <div className="page-head">
         <div>
-          <h1 className="page-title">PAŹDZIERNIK 2024</h1>
+          <h1 className="page-title">{monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}</h1>
           <p className="page-subtitle">Mapa temperatur dla każdego dnia.</p>
         </div>
         <div className="pager">
-          <button className="icon-button" type="button" aria-label="Poprzedni">
+          <button className="icon-button" type="button" aria-label="Poprzedni" onClick={handlePrevMonth}>
             <ChevronLeftIcon />
           </button>
-          <button className="icon-button" type="button" aria-label="Następny">
+          <button className="icon-button" type="button" aria-label="Następny" onClick={handleNextMonth}>
             <ChevronRightIcon />
           </button>
         </div>
       </div>
 
-      <CalendarCard />
+      <CalendarCard
+        currentDate={currentDate}
+        selectedDate={selectedDate}
+        onSelectDate={setSelectedDate}
+        entries={archiveEntries}
+      />
+
+      <section className="stack" style={{ marginTop: '24px' }}>
+        <div className="section-title">Twoja Próba • {selectedIso}</div>
+        <div className="card stat-card reveal" style={withDelay('0.1s')}>
+          <div>
+            <div className="stat-label">Twój najlepszy strzał</div>
+            <div className="stat-large">{bestTemp}</div>
+            <div className="stat-meta">{bestMeta}</div>
+          </div>
+          <div className="stat-icon">
+            <FlameIcon />
+          </div>
+        </div>
+      </section>
     </>
   )
 }
 
-function CalendarCard({ compact }: { compact?: boolean }) {
+type CalendarCardProps = {
+  compact?: boolean
+  currentDate: Date
+  selectedDate: Date
+  onSelectDate: (date: Date) => void
+  entries: ArchiveEntry[]
+}
+
+function CalendarCard({ compact, currentDate, selectedDate, onSelectDate, entries }: CalendarCardProps) {
+  const year = currentDate.getFullYear()
+  const month = currentDate.getMonth()
+
+  const daysInMonth = getDaysInMonth(year, month)
+  const firstDay = getFirstDayOfMonth(year, month)
+  const daysInPrevMonth = getDaysInMonth(year, month - 1)
+
+  const days = []
+
+  for (let i = 0; i < firstDay; i++) {
+    days.push({ day: daysInPrevMonth - firstDay + i + 1, muted: true, date: new Date(year, month - 1, daysInPrevMonth - firstDay + i + 1) })
+  }
+
+  for (let i = 1; i <= daysInMonth; i++) {
+    days.push({ day: i, muted: false, date: new Date(year, month, i) })
+  }
+
+  const remaining = days.length % 7
+  if (remaining !== 0) {
+    for (let i = 1; i <= 7 - remaining; i++) {
+      days.push({ day: i, muted: true, date: new Date(year, month + 1, i) })
+    }
+  }
+
+  const entriesByDate = useMemo(() => {
+    const map = new Map<string, ArchiveEntry>()
+    entries.forEach(e => map.set(e.rawDate, e))
+    return map
+  }, [entries])
+
   return (
     <div className={`card calendar-card${compact ? ' calendar-card--compact' : ''}`}>
       <div className="calendar-week">
@@ -1033,18 +1594,24 @@ function CalendarCard({ compact }: { compact?: boolean }) {
         ))}
       </div>
       <div className="calendar-grid">
-        {calendarDays.map((entry) => (
-          <div
-            key={entry.day}
-            className={`day${entry.muted ? ' day--muted' : ''}${entry.active ? ' day--active' : ''
-              }`}
-          >
-            {entry.day}
-            {entry.dot ? (
-              <span className={`day-dot dot-${entry.dot}`} />
-            ) : null}
-          </div>
-        ))}
+        {days.map((entry, index) => {
+          const iso = toIsoLocal(entry.date)
+          const archive = entriesByDate.get(iso)
+          const isSelected = iso === toIsoLocal(selectedDate)
+          return (
+            <div
+              key={`${entry.day}-${index}`}
+              className={`day${entry.muted ? ' day--muted' : ''}${isSelected ? ' day--active' : ''}`}
+              onClick={() => onSelectDate(entry.date)}
+              style={{ cursor: 'pointer' }}
+            >
+              {entry.day}
+              {archive ? (
+                <span className={`day-dot dot-${archive.tone}`} />
+              ) : null}
+            </div>
+          )
+        })}
       </div>
     </div>
   )
@@ -1154,9 +1721,9 @@ function InfoScreen() {
         <p className="card-desc">
           Masz pytania, znalazłeś błąd lub chcesz po prostu powiedzieć cześć?
         </p>
-        <button className="secondary-btn" type="button">
+        <Link className="secondary-btn" to="/contact">
           Napisz do nas
-        </button>
+        </Link>
       </div>
     </>
   )
@@ -1165,6 +1732,7 @@ function InfoScreen() {
 function SettingsScreen() {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const navigate = useNavigate()
 
   useEffect(() => {
     const loadUser = async () => {
@@ -1201,7 +1769,9 @@ function SettingsScreen() {
       console.error(error)
     } finally {
       clearAuthSessionId()
+      clearSessionId()
       setUser(null)
+      navigate('/login', { replace: true })
     }
   }
 
@@ -1214,9 +1784,20 @@ function SettingsScreen() {
 
       <div className="card settings-card">
         <div className="settings-header">
-          <span className="info-icon tone-warm">
-            <UserIcon />
-          </span>
+          {user ? (
+            <div
+              className="info-icon tone-warm"
+              style={{
+                backgroundImage: `url('${getAvatarUrl(user.name)}')`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }}
+            />
+          ) : (
+            <span className="info-icon tone-warm">
+              <UserIcon />
+            </span>
+          )}
           <div>
             <div className="card-title">Konto</div>
             {isLoading ? (
@@ -1239,9 +1820,9 @@ function SettingsScreen() {
         <div className="settings-actions">
           {user ? (
             <>
-              <button className="secondary-btn" type="button" disabled>
+              <Link className="ghost-btn" to="/change-password">
                 Zmień hasło
-              </button>
+              </Link>
               <button className="ghost-btn" type="button" onClick={handleLogout}>
                 Wyloguj
               </button>
@@ -1276,13 +1857,6 @@ function SettingsScreen() {
             </div>
             <Toggle defaultChecked />
           </div>
-          <div className="settings-item">
-            <div>
-              <div className="list-title">Tryb Ciemny</div>
-              <div className="list-sub">WYMAGANY DO GRY</div>
-            </div>
-            <Toggle />
-          </div>
         </div>
       </div>
 
@@ -1314,15 +1888,40 @@ function SettingsScreen() {
   )
 }
 
+function MessageIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none">
+      <path
+        d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
 function FriendsScreen() {
   const [friendsData, setFriendsData] = useState<FriendsData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [currentLink, setCurrentLink] = useState('cieplo-zimno.io/invite/...')
+  const [copied, setCopied] = useState(false)
+
+  const generateUniqueLink = (base: string) => {
+    return `${base}-${Math.random().toString(36).slice(2, 8)}`
+  }
 
   useEffect(() => {
     const loadFriends = async () => {
       try {
-        const data = await apiRequest<FriendsData>('/friends')
+        const authSessionId = getAuthSessionId()
+        if (!authSessionId) return
+        const data = await apiRequest<FriendsData>(`/friends?authSessionId=${authSessionId}`)
         setFriendsData(data)
+        if (data.inviteLink) {
+          setCurrentLink(generateUniqueLink(data.inviteLink))
+        }
       } catch (error) {
         console.error(error)
       } finally {
@@ -1333,8 +1932,20 @@ function FriendsScreen() {
     void loadFriends()
   }, [])
 
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(currentLink)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+
+      const base = friendsData?.inviteLink ?? 'cieplo-zimno.io/invite/...'
+      setCurrentLink(generateUniqueLink(base))
+    } catch (err) {
+      console.error('Failed to copy', err)
+    }
+  }
+
   const suggestions = friendsData?.suggestions ?? []
-  const inviteLink = friendsData?.inviteLink ?? 'cieplo-zimno.io/invite/u_492'
   const inviteNote =
     friendsData?.inviteNote ??
     'Zaproś znajomych do gry i odbierz bonusowe podpowiedzi za każdego nowego gracza, który dołączy z Twojego polecenia.'
@@ -1351,9 +1962,43 @@ function FriendsScreen() {
         </button>
       </div>
 
-      <div className="card search-bar">
-        <SearchIcon />
-        <input placeholder="Szukaj po nazwie użytkownika lub e-mailu" />
+      <div
+        style={{
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
+          width: '100%',
+          borderBottom: '2px solid #353534',
+          boxSizing: 'border-box',
+          marginBottom: '32px',
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            left: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            color: '#414754',
+          }}
+        >
+          <SearchIcon />
+        </div>
+        <input
+          placeholder="Szukaj po nazwie użytkownika lub emailu"
+          style={{
+            width: '100%',
+            padding: '19px 12px 20px 48px',
+            background: 'transparent',
+            border: 'none',
+            outline: 'none',
+            color: '#E5E2E1',
+            fontFamily: 'Inter',
+            fontWeight: 400,
+            fontSize: '18px',
+            lineHeight: '22px',
+          }}
+        />
       </div>
 
       <div className="section-title">Sugerowani</div>
@@ -1370,7 +2015,14 @@ function FriendsScreen() {
               style={withDelay(`${0.1 + index * 0.08}s`)}
             >
               <div className="friend-left">
-                <div className="avatar" />
+                <div
+                  className="avatar"
+                  style={{
+                    backgroundImage: `url('${getAvatarUrl(item.name)}')`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                  }}
+                />
                 <div>
                   <div className="list-title">{item.name}</div>
                   <div className="list-sub">{item.info}</div>
@@ -1387,9 +2039,15 @@ function FriendsScreen() {
       <div className="card invite-card">
         <div className="card-title">Twój link zaproszenia</div>
         <div className="invite-link">
-          {inviteLink}
-          <button className="icon-button" type="button" aria-label="Skopiuj">
-            <CopyIcon />
+          {currentLink}
+          <button
+            className="icon-button"
+            type="button"
+            aria-label="Skopiuj"
+            onClick={handleCopy}
+            title={copied ? "Skopiowano!" : "Skopiuj link"}
+          >
+            {copied ? <CheckIcon /> : <CopyIcon />}
           </button>
         </div>
         <p className="card-desc">{inviteNote}</p>
@@ -1500,11 +2158,13 @@ function SettingsIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" fill="none">
       <path
-        d="M12 4.5 13.4 7h3l-2.2 2.2 1 3L12 10.7 8.8 12.2l1-3L7.6 7h3L12 4.5Z"
+        d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"
         stroke="currentColor"
-        strokeWidth="1.4"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
-      <circle cx="12" cy="12" r="7.2" stroke="currentColor" strokeWidth="1.2" />
+      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }
@@ -1663,6 +2323,14 @@ function SearchIcon() {
     <svg viewBox="0 0 24 24" aria-hidden="true" fill="none">
       <circle cx="11" cy="11" r="6" stroke="currentColor" strokeWidth="1.6" />
       <path d="m16.5 16.5 4 4" stroke="currentColor" strokeWidth="1.6" />
+    </svg>
+  )
+}
+
+function CheckIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none">
+      <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }

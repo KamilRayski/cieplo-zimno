@@ -60,3 +60,6 @@ Desktop.ini
 coverage/
 *.lcov
 .nyc_output/
+
+# Historia konwersacji AI
+.specstory/

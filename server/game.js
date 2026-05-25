@@ -1,19 +1,72 @@
-export const MAX_ATTEMPTS = 6
+import { pipeline } from '@xenova/transformers'
 
-export const sanitizeGuess = (guess) => guess.trim().toUpperCase()
+export const MAX_ATTEMPTS = 10
 
-/**
- * Funkcja oceniająca w 100% semantycznie (skala -100 do 100).
- * 
- * Docelowo powinieneś w tym miejscu wykonać zapytanie do API (np. OpenAI Embeddings)
- * lub odpytać lokalny model NLP (np. Python + FastText), aby obliczyć 
- * rzeczywiste "cosine similarity". Funkcja jest `async` w celu ułatwienia tej integracji.
- */
+const MODEL_ID = 'Xenova/paraphrase-multilingual-MiniLM-L12-v2'
+let extractorPromise
+const embeddingCache = new Map()
+
+export const sanitizeGuess = (guess) => {
+    if (!guess) return ''
+    return guess.toString().trim().normalize('NFC').replace(/\s+/g, ' ')
+}
+
+const getExtractor = async () => {
+    if (!extractorPromise) {
+        extractorPromise = pipeline('feature-extraction', MODEL_ID)
+    }
+    return extractorPromise
+}
+
+const toVector = (output) => {
+    if (output?.data) return output.data
+    if (Array.isArray(output)) return new Float32Array(output.flat(Infinity))
+    return new Float32Array()
+}
+
+const getEmbedding = async (text) => {
+    const key = text.toLowerCase()
+    if (embeddingCache.has(key)) {
+        return embeddingCache.get(key)
+    }
+
+    const extractor = await getExtractor()
+    const output = await extractor(text, { pooling: 'mean', normalize: true })
+    const vector = toVector(output)
+    embeddingCache.set(key, vector)
+    return vector
+}
+
+const cosineSimilarity = (a, b) => {
+    if (!a.length || !b.length) return 0
+    const length = Math.min(a.length, b.length)
+    let dot = 0
+    let normA = 0
+    let normB = 0
+    for (let i = 0; i < length; i += 1) {
+        const ai = a[i]
+        const bi = b[i]
+        dot += ai * bi
+        normA += ai * ai
+        normB += bi * bi
+    }
+    if (!normA || !normB) return 0
+    return dot / Math.sqrt(normA * normB)
+}
+
 export const scoreGuess = async (secretWord, guess) => {
     const normalizedSecret = sanitizeGuess(secretWord)
     const normalizedGuess = sanitizeGuess(guess)
 
-    if (normalizedSecret === normalizedGuess) {
+    if (!normalizedGuess) {
+        return {
+            temperature: -100,
+            result: [],
+            isCorrect: false,
+        }
+    }
+
+    if (normalizedSecret.toLowerCase() === normalizedGuess.toLowerCase()) {
         return {
             temperature: 100,
             result: Array(normalizedGuess.length).fill('correct'),
@@ -21,21 +74,17 @@ export const scoreGuess = async (secretWord, guess) => {
         }
     }
 
-    // PONIŻEJ MOCK (Zastępcza logika na potrzeby testów):
-    // Tworzymy pseudolosową, ale deterministyczną temperaturę na bazie słowa
-    // aby frontend mógł reagować na RÓŻNE wartości z przedziału -100 do 99.
-    let hash = 0;
-    for (let i = 0; i < normalizedGuess.length; i++) {
-        hash = ((hash << 5) - hash) + normalizedGuess.charCodeAt(i);
-        hash |= 0;
-    }
-
-    // Skalujemy wynik do przedziału -100 ... 99
-    const temperature = (Math.abs(hash) % 200) - 100;
+    const [secretEmbedding, guessEmbedding] = await Promise.all([
+        getEmbedding(normalizedSecret),
+        getEmbedding(normalizedGuess),
+    ])
+    const similarity = cosineSimilarity(secretEmbedding, guessEmbedding)
+    const clamped = Math.max(-1, Math.min(1, similarity))
+    const temperature = Math.round(clamped * 100)
 
     return {
         temperature,
-        result: Array(normalizedGuess.length).fill('absent'), // Całkowicie pomijamy sprawdzanie liter
+        result: Array(normalizedGuess.length).fill('absent'),
         isCorrect: false,
     }
 }

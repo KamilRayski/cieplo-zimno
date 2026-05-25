@@ -128,6 +128,7 @@ export const initDb = async () => {
     CREATE TABLE IF NOT EXISTS sessions (
       id TEXT PRIMARY KEY,
       puzzle_id INTEGER NOT NULL,
+            user_id INTEGER,
       attempts INTEGER NOT NULL DEFAULT 0,
       is_won INTEGER NOT NULL DEFAULT 0,
       created_at TEXT NOT NULL,
@@ -194,8 +195,24 @@ export const initDb = async () => {
     );
   `)
 
+    ensureSessionUserColumn(db)
+
     seedData(db)
     return db
+}
+
+const ensureSessionUserColumn = (db) => {
+    const columns = db.prepare('PRAGMA table_info(sessions)').all()
+    const hasUserId = columns.some((column) => column.name === 'user_id')
+    if (!hasUserId) {
+        db.exec('ALTER TABLE sessions ADD COLUMN user_id INTEGER')
+    }
+
+    const indexes = db.prepare('PRAGMA index_list(sessions)').all()
+    const hasIndex = indexes.some((index) => index.name === 'idx_sessions_user_id')
+    if (!hasIndex) {
+        db.exec('CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions (user_id)')
+    }
 }
 
 const seedData = (db) => {
@@ -319,17 +336,17 @@ export const getOrCreatePuzzle = (db, dateString) => {
     }
 }
 
-export const createSession = (db, sessionId, puzzleId) => {
+export const createSession = (db, sessionId, puzzleId, userId = null) => {
     db.prepare(
-        'INSERT INTO sessions (id, puzzle_id, attempts, is_won, created_at) VALUES (?, ?, 0, 0, ?)')
-        .run(sessionId, puzzleId, new Date().toISOString())
+        'INSERT INTO sessions (id, puzzle_id, user_id, attempts, is_won, created_at) VALUES (?, ?, ?, 0, 0, ?)')
+        .run(sessionId, puzzleId, userId, new Date().toISOString())
 }
 
 export const getSessionWithPuzzle = (db, sessionId) =>
     db
         .prepare(
             `
-      SELECT sessions.id, sessions.attempts, sessions.is_won, puzzles.id as puzzleId,
+      SELECT sessions.id, sessions.user_id as userId, sessions.attempts, sessions.is_won, puzzles.id as puzzleId,
              words.word as secretWord
       FROM sessions
       JOIN puzzles ON puzzles.id = sessions.puzzle_id
@@ -338,6 +355,38 @@ export const getSessionWithPuzzle = (db, sessionId) =>
       `,
         )
         .get(sessionId)
+
+export const getSessionForUserAndPuzzle = (db, userId, puzzleId) =>
+    db
+        .prepare(
+            `
+      SELECT sessions.id, sessions.user_id as userId, sessions.attempts, sessions.is_won,
+             puzzles.id as puzzleId, words.word as secretWord
+      FROM sessions
+      JOIN puzzles ON puzzles.id = sessions.puzzle_id
+      JOIN words ON words.id = puzzles.word_id
+      WHERE sessions.user_id = ? AND sessions.puzzle_id = ?
+      ORDER BY sessions.created_at DESC
+      LIMIT 1
+      `,
+        )
+        .get(userId, puzzleId)
+
+export const getSessionsForUser = (db, userId) =>
+    db
+        .prepare(
+            `
+      SELECT sessions.id, sessions.user_id as userId, sessions.attempts, sessions.is_won,
+             sessions.created_at as createdAt, puzzles.date as puzzleDate,
+             words.word as secretWord
+      FROM sessions
+      JOIN puzzles ON puzzles.id = sessions.puzzle_id
+      JOIN words ON words.id = puzzles.word_id
+      WHERE sessions.user_id = ?
+      ORDER BY puzzles.date DESC, sessions.created_at DESC
+      `,
+        )
+        .all(userId)
 
 export const getGuesses = (db, sessionId) =>
     db
@@ -362,6 +411,10 @@ export const updateSession = (db, sessionId, attempts, isWon) => {
         isWon ? 1 : 0,
         sessionId,
     )
+}
+
+export const setSessionUser = (db, sessionId, userId) => {
+    db.prepare('UPDATE sessions SET user_id = ? WHERE id = ?').run(userId, sessionId)
 }
 
 export const getUserByEmail = (db, email) =>
@@ -399,16 +452,82 @@ export const getUserBySessionId = (db, sessionId) =>
         )
         .get(sessionId)
 
+export const getUserWithPasswordBySessionId = (db, sessionId) =>
+    db
+        .prepare(
+            `
+      SELECT users.id, users.name, users.email, users.password_hash as passwordHash
+      FROM auth_sessions
+      JOIN users ON users.id = auth_sessions.user_id
+      WHERE auth_sessions.id = ?
+      `,
+        )
+        .get(sessionId)
+
+export const updateUserPassword = (db, userId, passwordHash) => {
+    db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(
+        passwordHash,
+        userId,
+    )
+}
+
 export const deleteAuthSession = (db, sessionId) => {
     db.prepare('DELETE FROM auth_sessions WHERE id = ?').run(sessionId)
 }
 
-export const getLeaderboard = (db) =>
-    db
+export const resetUserAttemptsForDate = (db, userId, dateString) => {
+    db.prepare(
+        `
+      UPDATE sessions
+      SET attempts = 0
+      WHERE user_id = ?
+        AND puzzle_id = (SELECT id FROM puzzles WHERE date = ?)
+      `,
+    ).run(userId, dateString)
+}
+
+export const getLeaderboard = (db, limit = 50) => {
+    const rows = db
         .prepare(
-            'SELECT rank, name, temperature, avg_attempts as avgAttempts FROM leaderboard ORDER BY rank ASC',
+            `
+            WITH user_stats AS (
+                SELECT users.id AS userId,
+                             users.name AS name,
+                             (
+                                 SELECT MAX(g.temperature)
+                                 FROM guesses g
+                                 JOIN sessions s ON s.id = g.session_id
+                                 WHERE s.user_id = users.id
+                             ) AS temperature,
+                             (
+                                 SELECT AVG(guess_count)
+                                 FROM (
+                                          SELECT COUNT(g2.id) AS guess_count
+                                          FROM sessions s2
+                                          LEFT JOIN guesses g2 ON g2.session_id = s2.id
+                                          WHERE s2.user_id = users.id
+                                          GROUP BY s2.id
+                                      ) stats
+                                 WHERE guess_count > 0
+                             ) AS avgAttempts
+                FROM users
+            )
+            SELECT name, temperature, avgAttempts
+            FROM user_stats
+            WHERE temperature IS NOT NULL
+            ORDER BY temperature DESC, avgAttempts ASC, name ASC
+            LIMIT ?
+            `,
         )
-        .all()
+        .all(limit)
+
+    return rows.map((row, index) => ({
+        rank: index + 1,
+        name: row.name,
+        temperature: Math.round(row.temperature ?? 0),
+        avgAttempts: row.avgAttempts ? Number(row.avgAttempts.toFixed(1)) : 0,
+    }))
+}
 
 export const getHomeFriends = (db) =>
     db
