@@ -416,6 +416,23 @@
   height: 18px;
 }
 
+.field-trailing {
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: inherit;
+  cursor: pointer;
+}
+
+.field-trailing.is-active {
+  color: var(--accent-rose);
+}
+
+.field-trailing:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 .auth-switch {
   margin: 0;
   font-size: 13px;
