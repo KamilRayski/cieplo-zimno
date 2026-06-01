@@ -1,10 +1,15 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import {
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  updatePassword,
+} from 'firebase/auth'
 import { Link } from 'react-router-dom'
 import Logo from '../components/Logo'
 import { ArrowRightIcon, EyeIcon, LockIcon } from '../components/icons'
-import { apiRequest } from '../lib/api'
-import { getAuthSessionId } from '../lib/session'
+import { auth } from '../lib/firebase'
+import { formatAuthError } from '../lib/formatAuthError'
 import { withDelay } from '../lib/withDelay'
 
 export default function ChangePasswordScreen() {
@@ -38,9 +43,11 @@ export default function ChangePasswordScreen() {
       return
     }
 
-    const sessionId = getAuthSessionId()
-    if (!sessionId) {
-      setError('Brak aktywnej sesji. Zaloguj się ponownie.')
+    const user = auth.currentUser
+    if (!user?.email) {
+      setError(
+        'Zmiana hasła dotyczy kont e-mail/hasło. Zaloguj się przez e-mail, nie Google.',
+      )
       return
     }
 
@@ -48,14 +55,12 @@ export default function ChangePasswordScreen() {
     setError(null)
 
     try {
-      await apiRequest<{ ok: boolean }>('/auth/change-password', {
-        method: 'POST',
-        json: {
-          authSessionId: sessionId,
-          currentPassword,
-          newPassword,
-        },
-      })
+      const credential = EmailAuthProvider.credential(
+        user.email,
+        currentPassword,
+      )
+      await reauthenticateWithCredential(user, credential)
+      await updatePassword(user, newPassword)
       setStatus('success')
       setCurrentPassword('')
       setNewPassword('')
@@ -64,11 +69,7 @@ export default function ChangePasswordScreen() {
       setShowNewPassword(false)
       setShowConfirmPassword(false)
     } catch (submitError) {
-      const message =
-        submitError instanceof Error
-          ? submitError.message
-          : 'Nie udało się zmienić hasła. Spróbuj ponownie.'
-      setError(message)
+      setError(formatAuthError(submitError))
       setStatus('idle')
     }
   }

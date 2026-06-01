@@ -443,6 +443,50 @@
   opacity: 0.5;
 }
 
+.auth-divider {
+  margin: 0;
+  text-align: center;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.btn-google {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.btn-google:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.btn-google:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.auth-error-detail {
+  white-space: pre-wrap;
+  text-align: left;
+  font-size: 12px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
 .auth-switch {
   margin: 0;
   font-size: 13px;
