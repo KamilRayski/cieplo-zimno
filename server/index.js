@@ -296,9 +296,7 @@ app.post('/api/game/guess', async (req, res) => {
         setSessionUser(db, session.id, user.id)
     }
 
-    if (session.is_won || session.attempts >= MAX_ATTEMPTS) {
-        return res.status(409).json({ error: 'Brak prób na dziś.' })
-    }
+    // attempts limit removed — allow unlimited guesses
 
     const normalizedGuess = sanitizeGuess(guess)
     if (!normalizedGuess) {
