@@ -1,9 +1,12 @@
 .app-shell {
+  --bottom-nav-height: 72px;
+  --topbar-height: 88px;
   position: relative;
   min-height: 100vh;
   display: flex;
   justify-content: center;
   padding: 24px 16px;
+  padding-bottom: calc(var(--bottom-nav-height) + 24px);
   overflow: hidden;
   background: var(--bg);
 }
@@ -63,7 +66,8 @@
   border: 1px solid var(--border);
   border-radius: 32px;
   box-shadow: var(--shadow);
-  padding: 18px 18px 150px;
+  padding: 18px;
+  padding-bottom: calc(var(--bottom-nav-height) + 18px);
   overflow: hidden;
 }
 
@@ -156,15 +160,16 @@
 }
 
 .bottom-nav {
-  position: fixed;
-  bottom: 0;
+  position: absolute;
+  bottom: -6px;
   left: 50%;
   transform: translateX(-50%);
   width: min(420px, 100%);
+  height: var(--bottom-nav-height);
   background: rgba(24, 24, 28, 0.95);
   border: 1px solid var(--border);
   border-radius: 18px;
-  padding: 10px 12px 12px;
+  padding: 10px 12px;
   display: flex;
   justify-content: space-around;
   gap: 10px;
@@ -340,6 +345,12 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+/* Ensure logo is centered on auth screens */
+.auth-hero .logo {
+  justify-content: center;
+  text-align: center;
 }
 
 .auth-tagline {
@@ -596,6 +607,17 @@
 .list-temp {
   font-weight: 700;
   text-align: right;
+}
+
+/* Fix Add button width in friend cards */
+.friend-card .primary-btn {
+  width: 96px;
+  min-width: 96px;
+  max-width: 96px;
+  flex: 0 0 96px;
+  margin-top: 0;
+  padding: 10px 8px;
+  justify-content: center;
 }
 
 .temp-hot {
@@ -871,11 +893,47 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  background: var(--card);
+  border-radius: 22px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: var(--soft-shadow);
 }
 
-.info-row {
+/* Floating input used in GameScreen: constrained between topbar and bottom-nav */
+.input-card.floating {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(420px, 100%);
+  max-width: 420px;
+  bottom: calc(var(--bottom-nav-height) + 18px);
+  top: calc(var(--topbar-height) + 18px);
+  z-index: 60;
+  border-radius: 18px;
+  padding: 12px;
   display: flex;
-  gap: 12px;
+  gap: 8px;
+  align-items: center;
+  background: rgba(24, 24, 28, 0.95);
+  backdrop-filter: blur(6px);
+  box-shadow: var(--soft-shadow);
+  border: 1px solid var(--border);
+  overflow: auto;
+  max-height: calc(100vh - var(--bottom-nav-height) - var(--topbar-height) - 36px);
+}
+
+.input-card.floating .input-field {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 8px 12px;
+  height: 40px;
+  line-height: 20px;
+  border-radius: 12px;
+}
+
+.input-card.floating .primary-btn {
+  flex: 0 0 auto;
 }
 
 .info-icon {
@@ -1160,4 +1218,30 @@
   .glow {
     animation: none;
   }
+}
+
+/* Scrollable history list inside GameScreen */
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  padding-right: 8px;
+  max-height: calc(100vh - var(--topbar-height) - var(--bottom-nav-height) - 220px);
+}
+
+/* Hide scrollbar while keeping scroll functionality */
+.history-list {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.history-list::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+/* Ensure history cards don't expand the container */
+.history-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }

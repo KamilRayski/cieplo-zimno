@@ -11,6 +11,14 @@ export default function FriendsScreen() {
   const [isLoading, setIsLoading] = useState(true)
   const [currentLink, setCurrentLink] = useState('cieplo-zimno.io/invite/...')
   const [copied, setCopied] = useState(false)
+  const [addedNames, setAddedNames] = useState<string[]>(() => {
+    try {
+      const raw = localStorage.getItem('localAddedFriends')
+      return raw ? JSON.parse(raw).map((f: any) => f.name) : []
+    } catch (e) {
+      return []
+    }
+  })
 
   const generateUniqueLink = (base: string) => {
     return `${base}-${Math.random().toString(36).slice(2, 8)}`
@@ -114,31 +122,55 @@ export default function FriendsScreen() {
         ) : suggestions.length === 0 ? (
           <div className="empty-state">Brak sugestii znajomych.</div>
         ) : (
-          suggestions.map((item, index) => (
-            <div
-              key={item.name}
-              className="card friend-card reveal"
-              style={withDelay(`${0.1 + index * 0.08}s`)}
-            >
-              <div className="friend-left">
-                <div
-                  className="avatar"
-                  style={{
-                    backgroundImage: `url('${getAvatarUrl(item.name)}')`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                  }}
-                />
-                <div>
-                  <div className="list-title">{item.name}</div>
-                  <div className="list-sub">{item.info}</div>
+          suggestions.map((item, index) => {
+            const isAdded = addedNames.includes(item.name)
+            return (
+              <div
+                key={item.name}
+                className="card friend-card reveal"
+                style={withDelay(`${0.1 + index * 0.08}s`)}
+              >
+                <div className="friend-left">
+                  <div
+                    className="avatar"
+                    style={{
+                      backgroundImage: `url('${getAvatarUrl(item.name)}')`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                    }}
+                  />
+                  <div>
+                    <div className="list-title">{item.name}</div>
+                    <div className="list-sub">{item.info}</div>
+                  </div>
                 </div>
+                <button
+                  className="primary-btn"
+                  type="button"
+                  disabled={isAdded}
+                  onClick={() => {
+                    // fabricate ranking entry and persist locally
+                    const fabricated = {
+                      name: item.name,
+                      temperature: Math.floor(50 + Math.random() * 50),
+                      avgAttempts: Math.max(1, Math.floor(1 + Math.random() * 6)),
+                    }
+                    try {
+                      const raw = localStorage.getItem('localAddedFriends')
+                      const list = raw ? JSON.parse(raw) : []
+                      list.push(fabricated)
+                      localStorage.setItem('localAddedFriends', JSON.stringify(list))
+                      setAddedNames((prev) => [...prev, item.name])
+                    } catch (e) {
+                      console.error('Failed to add local friend', e)
+                    }
+                  }}
+                >
+                  {isAdded ? 'Dodano' : 'Dodaj'}
+                </button>
               </div>
-              <button className="primary-btn" type="button">
-                Dodaj
-              </button>
-            </div>
-          ))
+            )
+          })
         )}
       </div>
 

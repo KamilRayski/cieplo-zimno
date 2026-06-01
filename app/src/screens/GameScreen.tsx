@@ -115,31 +115,33 @@ export default function GameScreen() {
 
       <section className="stack">
         <div className="section-title muted">Historia prób</div>
-        {guesses.length === 0 ? (
-          <div className="empty-state">Brak prób. Zgadnij pierwsze słowo.</div>
-        ) : (
-          [...guesses]
-            .reverse()
-            .map((guess, index) => (
-              <div
-                key={`${guess.word}-${guess.createdAt}`}
-                className={`card history-card temp-${toneFromTemperature(
-                  guess.temperature,
-                )} reveal`}
-                style={withDelay(`${0.1 + index * 0.06}s`)}
-              >
-                <div>
-                  <div className="history-word">{guess.word}</div>
-                  <div className="history-meta">
-                    Znaczenie: {guess.temperature >= 50 ? 'Bliskie' : guess.temperature >= 0 ? 'Powiązane' : 'Odległe'}
+        <div className="history-list">
+          {guesses.length === 0 ? (
+            <div className="empty-state">Brak prób. Zgadnij pierwsze słowo.</div>
+          ) : (
+            [...guesses]
+              .reverse()
+              .map((guess, index) => (
+                <div
+                  key={`${guess.word}-${guess.createdAt}`}
+                  className={`card history-card temp-${toneFromTemperature(
+                    guess.temperature,
+                  )} reveal`}
+                  style={withDelay(`${0.1 + index * 0.06}s`)}
+                >
+                  <div>
+                    <div className="history-word">{guess.word}</div>
+                    <div className="history-meta">
+                      Znaczenie: {guess.temperature >= 50 ? 'Bliskie' : guess.temperature >= 0 ? 'Powiązane' : 'Odległe'}
+                    </div>
+                  </div>
+                  <div className="history-temp">
+                    {formatTemperature(guess.temperature)}
                   </div>
                 </div>
-                <div className="history-temp">
-                  {formatTemperature(guess.temperature)}
-                </div>
-              </div>
-            ))
-        )}
+              ))
+          )}
+        </div>
       </section>
 
       {/* licznik prób usunięty */}

@@ -12,7 +12,21 @@ export default function RankingScreen() {
     const loadLeaderboard = async () => {
       try {
         const data = await apiRequest<LeaderboardEntry[]>('/leaderboard')
-        setEntries(data)
+        // merge with any locally added friends (fabricated results)
+        const raw = localStorage.getItem('localAddedFriends')
+        const localAdded = raw ? JSON.parse(raw) : []
+        const combined = [...data, ...localAdded]
+        // sort by temperature desc and assign ranks
+        const sorted = combined
+          .slice()
+          .sort((a, b) => b.temperature - a.temperature)
+          .map((item, idx) => ({
+            rank: idx + 1,
+            name: item.name,
+            temperature: item.temperature,
+            avgAttempts: item.avgAttempts ?? item.avgAttempts ?? 0,
+          }))
+        setEntries(sorted)
       } catch (error) {
         console.error(error)
       } finally {
