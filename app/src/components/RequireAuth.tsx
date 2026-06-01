@@ -1,27 +1,50 @@
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
+import { useAuth } from '../auth/AuthContext'
 import { apiRequest } from '../lib/api'
+import { syncBackendFromFirebaseUser } from '../lib/authSync'
 import { clearAuthSessionId, clearSessionId, getAuthSessionId } from '../lib/session'
 import type { AuthMeResponse } from '../types'
 import Logo from './Logo'
 
 export default function RequireAuth({ children }: { children: ReactNode }) {
+  const { user, loading: firebaseLoading } = useAuth()
   const [status, setStatus] = useState<
     'checking' | 'authorized' | 'unauthorized'
   >('checking')
 
   useEffect(() => {
-    const authSessionId = getAuthSessionId()
-    if (!authSessionId) {
-      setStatus('unauthorized')
-      return
-    }
+    const authorize = async () => {
+      const existingSession = getAuthSessionId()
 
-    const checkAuth = async () => {
+      if (firebaseLoading && !existingSession && !user) {
+        return
+      }
+
+      if (user) {
+        let authSessionId = existingSession
+        if (!authSessionId) {
+          try {
+            await syncBackendFromFirebaseUser(user)
+            authSessionId = getAuthSessionId()
+          } catch {
+            setStatus('unauthorized')
+            return
+          }
+        }
+        setStatus(authSessionId ? 'authorized' : 'unauthorized')
+        return
+      }
+
+      if (!existingSession) {
+        setStatus('unauthorized')
+        return
+      }
+
       try {
         const data = await apiRequest<AuthMeResponse>(
-          `/auth/me?sessionId=${authSessionId}`,
+          `/auth/me?sessionId=${existingSession}`,
         )
         if (data.user) {
           setStatus('authorized')
@@ -37,8 +60,8 @@ export default function RequireAuth({ children }: { children: ReactNode }) {
       }
     }
 
-    void checkAuth()
-  }, [])
+    void authorize()
+  }, [user, firebaseLoading])
 
   if (status === 'checking') {
     return (

@@ -2,18 +2,19 @@ import './App.css'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import RequireAuth from './components/RequireAuth'
 import MainLayout from './components/layout/MainLayout'
-import AuthScreen from './screens/AuthScreen'
-import ChangePasswordScreen from './screens/ChangePasswordScreen'
-import ContactScreen from './screens/ContactScreen'
-import HomeScreen from './screens/HomeScreen'
-import GameScreen from './screens/GameScreen'
-import RankingScreen from './screens/RankingScreen'
-import ArchiveScreen from './screens/ArchiveScreen'
-import CalendarScreen from './screens/CalendarScreen'
-import InfoScreen from './screens/InfoScreen'
-import SettingsScreen from './screens/SettingsScreen'
-import FriendsScreen from './screens/FriendsScreen'
-import ResultScreen from './screens/ResultScreen'
+import AuthScreen from './pages/AuthScreen'
+import ChangePasswordScreen from './pages/ChangePasswordScreen'
+import ContactScreen from './pages/ContactScreen'
+import HomeScreen from './pages/HomeScreen'
+import GameScreen from './pages/GameScreen'
+import RankingScreen from './pages/RankingScreen'
+import ArchiveScreen from './pages/ArchiveScreen'
+import CalendarScreen from './pages/CalendarScreen'
+import InfoScreen from './pages/InfoScreen'
+import SettingsScreen from './pages/SettingsScreen'
+import FriendsScreen from './pages/FriendsScreen'
+import ResultScreen from './pages/ResultScreen'
+import NotFoundPage from './pages/NotFoundPage'
 
 export default function App() {
   return (
@@ -132,6 +133,7 @@ export default function App() {
             </RequireAuth>
           }
         />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </div>
   )

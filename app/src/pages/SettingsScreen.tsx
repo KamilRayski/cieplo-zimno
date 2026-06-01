@@ -1,17 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../auth/AuthContext'
 import Toggle from '../components/Toggle'
 import { BellIcon, GamepadIcon, UserIcon } from '../components/icons'
 import { apiRequest } from '../lib/api'
 import { getAvatarUrl } from '../lib/format'
-import {
-  clearAuthSessionId,
-  clearSessionId,
-  getAuthSessionId,
-} from '../lib/session'
+import { getAuthSessionId } from '../lib/session'
 import type { AuthMeResponse, AuthUser } from '../types'
 
 export default function SettingsScreen() {
+  const { signOut } = useAuth()
   const [user, setUser] = useState<AuthUser | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const navigate = useNavigate()
@@ -40,18 +38,11 @@ export default function SettingsScreen() {
   }, [])
 
   const handleLogout = async () => {
-    const sessionId = getAuthSessionId()
-    if (!sessionId) return
     try {
-      await apiRequest<{ ok: boolean }>('/auth/logout', {
-        method: 'POST',
-        json: { sessionId },
-      })
+      await signOut()
     } catch (error) {
       console.error(error)
     } finally {
-      clearAuthSessionId()
-      clearSessionId()
       setUser(null)
       navigate('/login', { replace: true })
     }
