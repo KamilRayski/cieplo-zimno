@@ -315,7 +315,14 @@ const seedData = (db) => {
 const hashDate = (dateString) =>
     [...dateString].reduce((acc, char) => acc + char.charCodeAt(0), 0)
 
-export const getOrCreatePuzzle = (db, dateString) => {
+const findWordRow = (db, wordText) => {
+    const normalized = wordText.trim().toUpperCase()
+    return db
+        .prepare('SELECT id, word FROM words WHERE UPPER(word) = ?')
+        .get(normalized)
+}
+
+export const getOrCreatePuzzle = (db, dateString, wordText = null) => {
     const existing = db
         .prepare(
             `
@@ -329,11 +336,19 @@ export const getOrCreatePuzzle = (db, dateString) => {
 
     if (existing) return existing
 
-    const count = db.prepare('SELECT COUNT(*) as count FROM words').get().count
-    const offset = hashDate(dateString) % count
-    const word = db
-        .prepare('SELECT id, word FROM words ORDER BY word LIMIT 1 OFFSET ?')
-        .get(offset)
+    let word = wordText ? findWordRow(db, wordText) : null
+
+    if (!word) {
+        const count = db.prepare('SELECT COUNT(*) as count FROM words').get().count
+        const offset = hashDate(dateString) % count
+        word = db
+            .prepare('SELECT id, word FROM words ORDER BY word LIMIT 1 OFFSET ?')
+            .get(offset)
+    }
+
+    if (!word) {
+        throw new Error('Brak hasel w bazie gry.')
+    }
 
     const result = db
         .prepare('INSERT INTO puzzles (date, word_id) VALUES (?, ?)')

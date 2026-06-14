@@ -313,8 +313,6 @@ app.post('/api/game/start', (req, res) => {
         session = getSessionWithPuzzle(db, newSessionId)
     }
 
-    console.log(`\n[DEBUG] Hasło (${targetDate}): ${session.secretWord}\n`)
-
     const guesses = getGuesses(db, session.id)
     respond(res, { ...buildSessionResponse(session, guesses), date: targetDate })
 })
