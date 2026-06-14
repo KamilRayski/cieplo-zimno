@@ -416,5 +416,5 @@ Upewnij się, że jesteś w katalogu `server/`, wykonałeś `npm install` i port
 ---
 
 <p align="center">
-  <sub>Zbudowane z React, Express i Firebase · Demo: <a href="https://cieplozimno.vercel.app/login">cieplozimno.vercel.app</a></sub>
+  <sub>Zbudowane z React, Express i Firebase · Demo: <a href="https://cieplo-zimno.vercel.app/login">cieplozimno.vercel.app</a></sub>
 </p>
