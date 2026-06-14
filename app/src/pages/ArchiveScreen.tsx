@@ -42,6 +42,14 @@ export default function ArchiveScreen() {
           entries.length,
       )}%`
 
+  const averageAttempts =
+    isLoading || entries.length === 0
+      ? '--'
+      : `${(
+        entries.reduce((sum, entry) => sum + (entry.attempts ?? 0), 0) /
+          entries.length
+      ).toFixed(1)}`
+
   return (
     <>
       <div>
@@ -49,7 +57,7 @@ export default function ArchiveScreen() {
         <p className="page-subtitle">Twoja podróż przez słowa</p>
       </div>
 
-      <div className="stats-grid">
+      <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
         <div className="card stat-mini">
           <div className="stat-label">Rozegrano</div>
           <div className="stat-large">{totalPlayed}</div>
@@ -57,6 +65,10 @@ export default function ArchiveScreen() {
         <div className="card stat-mini">
           <div className="stat-label">Średni wynik</div>
           <div className="stat-large accent">{averageScore}</div>
+        </div>
+        <div className="card stat-mini">
+          <div className="stat-label">Średnio prób</div>
+          <div className="stat-large" style={{ color: 'var(--accent-rose)' }}>{averageAttempts}</div>
         </div>
       </div>
 
@@ -78,8 +90,13 @@ export default function ArchiveScreen() {
                   <div className="archive-date">{item.date}</div>
                   <div className="archive-day">{item.day}</div>
                 </div>
-                <div className={`archive-label tone-${item.tone}`}>
-                  {item.label}
+                <div style={{ textAlign: 'right' }}>
+                  <div className={`archive-label tone-${item.tone}`} style={{ margin: 0 }}>
+                    {item.label}
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.5)', marginTop: '4px' }}>
+                    Liczba prób: {item.attempts}
+                  </div>
                 </div>
               </div>
               <div className="archive-hero">
@@ -96,6 +113,23 @@ export default function ArchiveScreen() {
                 className={`progress progress-${item.tone}`}
                 style={{ '--progress': `${item.progress}%` } as CSSProperties}
               />
+              {item.temperature < 100 && (
+                <Link
+                  to={`/game/${item.rawDate}`}
+                  className="secondary-btn"
+                  style={{
+                    marginTop: '12px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '100%',
+                    textDecoration: 'none',
+                    textAlign: 'center',
+                  }}
+                >
+                  Kontynuuj grę
+                </Link>
+              )}
             </div>
           ))
         )}

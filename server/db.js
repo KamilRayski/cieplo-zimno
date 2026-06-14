@@ -154,6 +154,7 @@ export const initDb = async () => {
       session_id TEXT NOT NULL,
       word TEXT NOT NULL,
       temperature INTEGER NOT NULL,
+      rank INTEGER,
       result TEXT NOT NULL,
       created_at TEXT NOT NULL,
       FOREIGN KEY (session_id) REFERENCES sessions (id)
@@ -197,6 +198,7 @@ export const initDb = async () => {
   `)
 
     ensureSessionUserColumn(db)
+    ensureGuessesRankColumn(db)
 
     seedData(db)
     return db
@@ -213,6 +215,14 @@ const ensureSessionUserColumn = (db) => {
     const hasIndex = indexes.some((index) => index.name === 'idx_sessions_user_id')
     if (!hasIndex) {
         db.exec('CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions (user_id)')
+    }
+}
+
+const ensureGuessesRankColumn = (db) => {
+    const columns = db.prepare('PRAGMA table_info(guesses)').all()
+    const hasRank = columns.some((column) => column.name === 'rank')
+    if (!hasRank) {
+        db.exec('ALTER TABLE guesses ADD COLUMN rank INTEGER')
     }
 }
 
@@ -392,7 +402,7 @@ export const getSessionsForUser = (db, userId) =>
 export const getGuesses = (db, sessionId) =>
     db
         .prepare(
-            'SELECT word, temperature, result, created_at as createdAt FROM guesses WHERE session_id = ? ORDER BY id ASC',
+            'SELECT word, temperature, rank, result, created_at as createdAt FROM guesses WHERE session_id = ? ORDER BY id ASC',
         )
         .all(sessionId)
         .map((row) => ({
@@ -400,10 +410,10 @@ export const getGuesses = (db, sessionId) =>
             result: JSON.parse(row.result),
         }))
 
-export const addGuess = (db, sessionId, word, temperature, result) => {
+export const addGuess = (db, sessionId, word, temperature, rank, result) => {
     db.prepare(
-        'INSERT INTO guesses (session_id, word, temperature, result, created_at) VALUES (?, ?, ?, ?, ?)')
-        .run(sessionId, word, temperature, JSON.stringify(result), new Date().toISOString())
+        'INSERT INTO guesses (session_id, word, temperature, rank, result, created_at) VALUES (?, ?, ?, ?, ?, ?)')
+        .run(sessionId, word, temperature, rank, JSON.stringify(result), new Date().toISOString())
 }
 
 export const updateSession = (db, sessionId, attempts, isWon) => {
@@ -487,46 +497,33 @@ export const resetUserAttemptsForDate = (db, userId, dateString) => {
     ).run(userId, dateString)
 }
 
-export const getLeaderboard = (db, limit = 50) => {
+export const getLeaderboard = (db, dateString, limit = 50) => {
     const rows = db
         .prepare(
             `
-            WITH user_stats AS (
-                SELECT users.id AS userId,
-                             users.name AS name,
-                             (
-                                 SELECT MAX(g.temperature)
-                                 FROM guesses g
-                                 JOIN sessions s ON s.id = g.session_id
-                                 WHERE s.user_id = users.id
-                             ) AS temperature,
-                             (
-                                 SELECT AVG(guess_count)
-                                 FROM (
-                                          SELECT COUNT(g2.id) AS guess_count
-                                          FROM sessions s2
-                                          LEFT JOIN guesses g2 ON g2.session_id = s2.id
-                                          WHERE s2.user_id = users.id
-                                          GROUP BY s2.id
-                                      ) stats
-                                 WHERE guess_count > 0
-                             ) AS avgAttempts
-                FROM users
-            )
-            SELECT name, temperature, avgAttempts
-            FROM user_stats
-            WHERE temperature IS NOT NULL
-            ORDER BY temperature DESC, avgAttempts ASC, name ASC
+            SELECT
+                u.name AS name,
+                MAX(g.temperature) AS maxTemp,
+                COUNT(g.id) AS attempts,
+                AVG(g.temperature) AS avgTemp
+            FROM users u
+            JOIN sessions s ON s.user_id = u.id
+            JOIN puzzles p ON p.id = s.puzzle_id
+            JOIN guesses g ON g.session_id = s.id
+            WHERE p.date = ?
+            GROUP BY u.id
+            ORDER BY maxTemp DESC, attempts ASC, name ASC
             LIMIT ?
             `,
         )
-        .all(limit)
+        .all(dateString, limit)
 
     return rows.map((row, index) => ({
         rank: index + 1,
         name: row.name,
-        temperature: Math.round(row.temperature ?? 0),
-        avgAttempts: row.avgAttempts ? Number(row.avgAttempts.toFixed(1)) : 0,
+        temperature: Math.round(row.maxTemp ?? 0),
+        attempts: row.attempts,
+        avgTemp: row.avgTemp ? Number(row.avgTemp.toFixed(1)) : 0,
     }))
 }
 

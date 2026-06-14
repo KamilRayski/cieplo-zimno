@@ -19,12 +19,18 @@ export default function RankingScreen() {
         // sort by temperature desc and assign ranks
         const sorted = combined
           .slice()
-          .sort((a, b) => b.temperature - a.temperature)
+          .sort((a, b) => {
+            if (Math.abs(b.temperature - a.temperature) > 0.001) {
+              return b.temperature - a.temperature
+            }
+            return (a.attempts ?? 0) - (b.attempts ?? 0)
+          })
           .map((item, idx) => ({
             rank: idx + 1,
             name: item.name,
             temperature: item.temperature,
-            avgAttempts: item.avgAttempts ?? item.avgAttempts ?? 0,
+            attempts: item.attempts ?? 0,
+            avgTemp: item.avgTemp ?? 0,
           }))
         setEntries(sorted)
       } catch (error) {
@@ -40,13 +46,18 @@ export default function RankingScreen() {
   const podium = entries.slice(0, 3)
   const list = entries.slice(3)
 
+  const today = new Date().toLocaleDateString('pl-PL', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
+
   return (
     <>
       <div>
         <h1 className="page-title accent">RANKING GRACZY</h1>
         <p className="page-subtitle">
-          Najlepsi z najlepszych. Sprawdź, kto ma największe wyczucie
-          temperatury.
+          Najlepsi w dniu {today}. Sprawdź, kto dzisiaj najlepiej poradził sobie z hasłem dnia.
         </p>
       </div>
 
@@ -74,8 +85,11 @@ export default function RankingScreen() {
               </div>
               <div>
                 <div className="ranking-name">{item.name}</div>
-                <div className="ranking-temp">
-                  {formatTemperature(item.temperature)}
+                <div className="ranking-temp" style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--accent-rose)', marginTop: '4px' }}>
+                  Liczba prób: {item.attempts}
+                </div>
+                <div style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.5)', marginTop: '4px' }}>
+                  Najlepsza: {formatTemperature(item.temperature)} • Średnia: {item.avgTemp}°C
                 </div>
               </div>
             </div>
@@ -101,12 +115,17 @@ export default function RankingScreen() {
             />
             <div style={{ flex: 1 }}>
               <div className="list-title">{item.name}</div>
-              <div className="list-sub">
-                ŚREDNIA PRÓB: {item.avgAttempts}
+              <div className="list-sub" style={{ textTransform: 'none', letterSpacing: 'normal' }}>
+                Średnia temp. prób: {item.avgTemp}°C
               </div>
             </div>
-            <div className="list-temp temp-hot">
-              {formatTemperature(item.temperature)}
+            <div style={{ textAlign: 'right' }}>
+              <div className="list-temp temp-hot" style={{ fontSize: '14px', fontWeight: 'bold' }}>
+                Liczba prób: {item.attempts}
+              </div>
+              <div className="list-sub" style={{ fontSize: '10px', marginTop: '2px', textTransform: 'none', letterSpacing: 'normal' }}>
+                Najlepsza: {formatTemperature(item.temperature)}
+              </div>
             </div>
           </div>
         ))}

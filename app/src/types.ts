@@ -3,6 +3,7 @@ export type Tone = 'hot' | 'warm' | 'cold'
 export type Guess = {
   word: string
   temperature: number
+  rank?: number | null
   result: Array<'correct' | 'present' | 'absent'>
   createdAt: string
 }
@@ -28,7 +29,8 @@ export type LeaderboardEntry = {
   rank: number
   name: string
   temperature: number
-  avgAttempts: number
+  attempts: number
+  avgTemp: number
 }
 
 export type ArchiveEntry = {
@@ -41,6 +43,7 @@ export type ArchiveEntry = {
   percent: string
   progress: number
   temperature: number
+  attempts: number
   tone: Tone
 }
 

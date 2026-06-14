@@ -19,13 +19,21 @@ export const apiRequest = async <T,>(
   if (!response.ok) {
     let message = 'Request failed'
     try {
-      const payload = await response.json()
-      if (payload?.error) {
-        message = payload.error
-      }
-    } catch {
       const text = await response.text()
-      if (text) message = text
+      if (text) {
+        try {
+          const payload = JSON.parse(text)
+          if (payload?.error) {
+            message = payload.error
+          } else {
+            message = text
+          }
+        } catch {
+          message = text
+        }
+      }
+    } catch (err) {
+      console.error('Error reading error response:', err)
     }
     throw new Error(message)
   }

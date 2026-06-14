@@ -24,7 +24,7 @@ import {
     updateUserPassword,
     updateSession,
 } from './db.js'
-import { MAX_ATTEMPTS, sanitizeGuess, scoreGuess } from './game.js'
+import { MAX_ATTEMPTS, sanitizeGuess, scoreGuess, getRankOfWord } from './game.js'
 import { words } from './seedData.js'
 
 const PORT = process.env.PORT || 4000
@@ -44,9 +44,18 @@ const getToday = () => {
 
 const buildSessionResponse = (session, guesses) => {
     const activeGuesses = session.attempts < guesses.length ? guesses.slice(guesses.length - session.attempts) : guesses
+    const guessesWithRank = activeGuesses.map((g) => {
+        if (g.rank === null || g.rank === undefined) {
+            return {
+                ...g,
+                rank: getRankOfWord(session.secretWord, g.word),
+            }
+        }
+        return g
+    })
     return {
         sessionId: session.id,
-        guesses: activeGuesses,
+        guesses: guessesWithRank,
         isWon: Boolean(session.is_won),
         attemptsLeft: Math.max(MAX_ATTEMPTS - session.attempts, 0),
         maxAttempts: MAX_ATTEMPTS,
@@ -262,16 +271,25 @@ app.post('/api/game/start', (req, res) => {
     const auth = requireAuthUser(req, res)
     if (!auth) return
     const { user } = auth
-    const { sessionId } = req.body || {}
+    const { sessionId, date } = req.body || {}
     const today = getToday()
 
+    // Walidacja daty archiwalnej
+    let targetDate = today
+    if (date && typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        if (date > today) {
+            return res.status(400).json({ error: 'Nie można grać w przyszłe dni.' })
+        }
+        targetDate = date
+    }
+
     // Deterministyczny wybór hasła z puli na podstawie numeru dnia
-    const wordIndex = dayNumber(new Date(today)) % words.length
-    const puzzle = getOrCreatePuzzle(db, today, words[wordIndex])
+    const wordIndex = dayNumber(new Date(targetDate)) % words.length
+    const puzzle = getOrCreatePuzzle(db, targetDate, words[wordIndex])
 
     let session = sessionId ? getSessionWithPuzzle(db, sessionId) : null
 
-    // Jeśli sesja istnieje, ale dotyczy innej zagadki (z poprzednich dni), odpinamy ją
+    // Jeśli sesja istnieje, ale dotyczy innej zagadki, odpinamy ją
     if (session && session.puzzleId !== puzzle.id) {
         session = null
     }
@@ -295,10 +313,10 @@ app.post('/api/game/start', (req, res) => {
         session = getSessionWithPuzzle(db, newSessionId)
     }
 
-    console.log(`\n[DEBUG] Aktualne hasło do odgadnięcia (dla ułatwienia testów): ${session.secretWord}\n`)
+    console.log(`\n[DEBUG] Hasło (${targetDate}): ${session.secretWord}\n`)
 
     const guesses = getGuesses(db, session.id)
-    respond(res, buildSessionResponse(session, guesses))
+    respond(res, { ...buildSessionResponse(session, guesses), date: targetDate })
 })
 
 app.post('/api/game/guess', async (req, res) => {
@@ -330,10 +348,14 @@ app.post('/api/game/guess', async (req, res) => {
     if (!normalizedGuess) {
         return res.status(400).json({ error: 'Podaj słowo.' })
     }
-    const { result, temperature, isCorrect } = await scoreGuess(
+    const { result, temperature, rank, isCorrect, error } = await scoreGuess(
         session.secretWord,
         normalizedGuess,
     )
+
+    if (error) {
+        return res.status(400).json({ error })
+    }
 
     let adjustedTemp = temperature;
     if (!isCorrect) {
@@ -346,7 +368,7 @@ app.post('/api/game/guess', async (req, res) => {
         }
     }
 
-    addGuess(db, sessionId, normalizedGuess, adjustedTemp, result)
+    addGuess(db, sessionId, normalizedGuess, adjustedTemp, rank, result)
     updateSession(db, sessionId, session.attempts + 1, isCorrect)
 
     const updatedSession = getSessionWithPuzzle(db, sessionId)
@@ -355,6 +377,7 @@ app.post('/api/game/guess', async (req, res) => {
     return respond(res, {
         ...buildSessionResponse(updatedSession, guesses),
         temperature: adjustedTemp,
+        rank,
         result,
     })
 })
@@ -379,8 +402,9 @@ app.get('/api/home', (req, res) => {
     respond(res, { bestShot, friends: getHomeFriends(db) })
 })
 
-app.get('/api/leaderboard', (_req, res) => {
-    respond(res, getLeaderboard(db))
+app.get('/api/leaderboard', (req, res) => {
+    const date = typeof req.query.date === 'string' ? req.query.date : getToday()
+    respond(res, getLeaderboard(db, date))
 })
 
 app.get('/api/archive', (req, res) => {
@@ -416,6 +440,7 @@ app.get('/api/archive', (req, res) => {
                 percent: `${progress}%`,
                 progress,
                 temperature: best.temperature,
+                attempts: session.attempts,
                 tone,
             }
         })
