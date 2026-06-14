@@ -1,0 +1,96 @@
+{
+  "słońce": {
+    "gwiazda": 85,
+    "księżyc": 75,
+    "niebo": 80,
+    "ciepło": 90,
+    "gorąco": 98,
+    "promień": 70,
+    "lato": 85,
+    "dzień": 78,
+    "ogień": 80,
+    "światło": 88,
+    "ciepły": 82,
+    "planeta": 60,
+    "kosmos": 65,
+    "chmura": 50,
+    "deszcz": 40
+  },
+  "planeta": {
+    "kosmos": 90,
+    "ziemia": 95,
+    "księżyc": 80,
+    "mars": 88,
+    "gwiazda": 75,
+    "słońce": 78,
+    "orbita": 85,
+    "galaktyka": 80,
+    "niebo": 60,
+    "świat": 70
+  },
+  "kosmos": {
+    "gwiazda": 85,
+    "planeta": 90,
+    "księżyc": 78,
+    "wszechświat": 98,
+    "rakieta": 88,
+    "astronauta": 92,
+    "galaktyka": 95,
+    "niebo": 70,
+    "słońce": 72
+  },
+  "ptak": {
+    "skrzydło": 90,
+    "pióro": 88,
+    "niebo": 75,
+    "lot": 85,
+    "gniazdo": 80,
+    "drzewo": 60,
+    "owad": 55,
+    "ryba": 40,
+    "zwierzę": 70
+  },
+  "dom": {
+    "mieszkanie": 95,
+    "budynek": 88,
+    "pokój": 85,
+    "drzwi": 80,
+    "okno": 78,
+    "dach": 82,
+    "rodzina": 75,
+    "schody": 70,
+    "ogród": 68
+  },
+  "człowiek": {
+    "kobieta": 95,
+    "mężczyzna": 95,
+    "dziecko": 90,
+    "ludzie": 92,
+    "serce": 80,
+    "życie": 85,
+    "ciało": 82,
+    "osoba": 98
+  },
+  "jabłko": {
+    "owoc": 95,
+    "drzewo": 70,
+    "czerwony": 75,
+    "zielony": 72,
+    "słodki": 78,
+    "jedzenie": 80,
+    "gruszka": 90,
+    "śliwka": 85,
+    "wiśnia": 82,
+    "banan": 80
+  },
+  "złoto": {
+    "srebro": 95,
+    "metal": 85,
+    "skarb": 90,
+    "pieniądze": 80,
+    "bogactwo": 88,
+    "pierścień": 82,
+    "diament": 90,
+    "klejnot": 92
+  }
+}

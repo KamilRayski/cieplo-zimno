@@ -153,6 +153,34 @@ app.post('/api/auth/register', (req, res) => {
     return respond(res, { sessionId, user })
 })
 
+app.post('/api/auth/google', (req, res) => {
+    const { email, name } = req.body || {}
+    if (!email?.trim()) {
+        return res.status(400).json({ error: 'Brak adresu e-mail z konta Google.' })
+    }
+
+    const normalizedEmail = normalizeEmail(email)
+    const displayName = name?.trim() || normalizedEmail.split('@')[0]
+    let user = getUserByEmail(db, normalizedEmail)
+
+    if (!user) {
+        const passwordHash = hashPassword(randomBytes(32).toString('hex'))
+        user = createUser(db, displayName, normalizedEmail, passwordHash)
+    }
+
+    const sessionId = randomUUID()
+    createAuthSession(db, sessionId, user.id)
+
+    return respond(res, {
+        sessionId,
+        user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+        },
+    })
+})
+
 app.post('/api/auth/login', (req, res) => {
     const { email, password } = req.body || {}
     if (!email?.trim()) {
@@ -411,6 +439,11 @@ app.get('/api/friends', (req, res) => {
     })
 })
 
-app.listen(PORT, () => {
-    console.log(`Game server running on http://localhost:${PORT}`)
-})
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+    app.listen(PORT, () => {
+        console.log(`Game server running on http://localhost:${PORT}`)
+    })
+}
+
+export default app
+
