@@ -64,6 +64,16 @@ export default function App() {
           }
         />
         <Route
+          path="/game/:date"
+          element={
+            <RequireAuth>
+              <MainLayout>
+                <GameScreen />
+              </MainLayout>
+            </RequireAuth>
+          }
+        />
+        <Route
           path="/ranking"
           element={
             <RequireAuth>

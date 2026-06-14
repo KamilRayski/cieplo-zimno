@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import CalendarCard from '../components/CalendarCard'
 import { ChevronLeftIcon, ChevronRightIcon, FlameIcon } from '../components/icons'
 import { apiRequest } from '../lib/api'
@@ -10,6 +11,7 @@ import { withDelay } from '../lib/withDelay'
 import type { ArchiveEntry } from '../types'
 
 export default function CalendarScreen() {
+  const navigate = useNavigate()
   const [archiveEntries, setArchiveEntries] = useState<ArchiveEntry[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -48,7 +50,7 @@ export default function CalendarScreen() {
 
   if (archiveEntry) {
     bestTemp = formatTemperature(archiveEntry.temperature)
-    bestMeta = `Słowo: ${archiveEntry.word}`
+    bestMeta = `Słowo: ${archiveEntry.word} • Liczba prób: ${archiveEntry.attempts}`
   }
 
   return (
@@ -99,6 +101,22 @@ export default function CalendarScreen() {
             <FlameIcon />
           </div>
         </div>
+
+        {selectedIso <= todayIso && (
+          <button
+            className="primary-btn reveal"
+            style={withDelay('0.15s')}
+            onClick={() => {
+              if (selectedIso === todayIso) {
+                navigate('/game')
+              } else {
+                navigate(`/game/${selectedIso}`)
+              }
+            }}
+          >
+            {selectedIso === todayIso ? 'Graj Dzisiaj' : 'Zagraj w ten dzień'}
+          </button>
+        )}
       </section>
       {isLoading ? <div className="empty-state">Ładuję archiwum...</div> : null}
     </>
