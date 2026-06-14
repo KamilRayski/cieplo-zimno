@@ -10,7 +10,8 @@ import {
     words,
 } from './seedData.js'
 
-const DB_DIR = path.resolve(process.cwd(), 'data')
+const isVercel = process.env.VERCEL || process.env.NOW_BUILDER;
+const DB_DIR = isVercel ? '/tmp/data' : path.resolve(process.cwd(), 'data')
 const DB_PATH = path.join(DB_DIR, 'cieplo-zimno.sqlite')
 
 const loadDatabase = async () => {
