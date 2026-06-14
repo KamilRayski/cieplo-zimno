@@ -2,7 +2,7 @@
 
 > Codzienna gra słowna oparta na podobieństwie semantycznym — im bliżej znaczeniowo Twoje słowo, tym wyższa temperatura.
 
-[![Live Demo](https://img.shields.io/badge/demo-cieplozimno.vercel.app-FF6B35?style=for-the-badge)](https://cieplozimno.vercel.app/login)
+[![Live Demo](https://img.shields.io/badge/demo-cieplozimno.vercel.app-FF6B35?style=for-the-badge)](https://cieplo-zimno.vercel.app/login)
 
 ---
 
@@ -72,7 +72,7 @@ Każdego dnia wszyscy gracze otrzymują to samo słowo. Po wpisaniu propozycji s
 ### 1. Klonowanie repozytorium
 
 ```bash
-git clone https://github.com/<twoj-uzytkownik>/cieplo-zimno.git
+git clone https://github.com/KamilRayski/cieplo-zimno.git
 cd cieplo-zimno
 ```
 
@@ -102,7 +102,7 @@ Aplikacja frontendowa proxy'uje żądania `/api/*` do backendu dzięki konfigura
 
 ## Użycie
 
-1. Otwórz **http://localhost:5173** (lub [demo na Vercel](https://cieplozimno.vercel.app/login)).
+1. Otwórz **http://localhost:5173** (lub [demo na Vercel](https://cieplo-zimno.vercel.app/login)).
 2. Zarejestruj się lub zaloguj (Email/Password albo Google).
 3. Przejdź do ekranu **Gra** (`/game`) i wpisz pierwsze słowo.
 4. Obserwuj temperaturę odpowiedzi i dopasowuj kolejne strzały.
@@ -350,29 +350,34 @@ Ustaw zmienną `PORT` zgodnie z hostingiem. Frontend musi mieć dostęp do API (
 
 ---
 
-## Roadmap
+## Documentation / Screenshots
 
-- [ ] Zrzuty ekranu w `docs/screenshots/` (logowanie, gra, ranking, analityka)
-- [ ] Rozszerzenie puli haseł i mapy semantycznej w `ranking.json`
+### Application Screenshots
 
----
+Główne widoki aplikacji — interfejs logowania, rozgrywka oraz ranking. Pokazują layout, nawigację i kluczowe elementy UX projektu.
 
-## Contributing
+| Logowanie | Gra | Ranking |
+|:---------:|:---:|:-------:|
+| ![Ekran logowania](docs/screenshots/app-login.jpg) | ![Ekran gry](docs/screenshots/app-game.jpg) | ![Ranking](docs/screenshots/app-ranking.jpg) |
+| Firebase Auth (Email/Password + Google) | Strzały z temperaturą i historią | Tablica liderów graczy |
 
-Chcesz pomóc w rozwoju projektu?
+### Google Analytics Screenshots
 
-1. **Fork** repozytorium
-2. Utwórz branch: `git checkout -b feature/nazwa-funkcji`
-3. Wprowadź zmiany i przetestuj lokalnie (backend + frontend)
-4. Commit: `git commit -m "feat: krótki opis zmiany"`
-5. **Push** i otwórz **Pull Request**
+**Google Analytics dashboard screenshots** — raporty GA4 zintegrowane przez `react-ga4` i `AnalyticsListener`. Pokazują ruch na stronie, konwersje między trasami (`/game`, `/ranking` itd.) oraz zachowanie użytkowników w czasie rzeczywistym.
 
-Przed PR uruchom linter frontendu:
+| Realtime |
+|:--------:|
+| ![Google Analytics — Realtime](docs/screenshots/google_analytics.jpg) |
+| Przegląd ruchu, źródła i zdarzenia, aktywni użytkownicy na żywo |
 
-```bash
-cd app
-npm run lint
-```
+### Hotjar Screenshots
+
+**Hotjar** — Ilustruje, gdzie użytkownicy klikają, jak scrollują ekran gry oraz jak przechodzą przez flow logowania i rozgrywki.
+
+| Heatmapy | Nagrania sesji |
+|:--------:|:--------------:|
+| ![Hotjar — Feedback Button](docs/screenshots/hotjar_2.jpg) | ![Hotjar — Session Replay](docs/screenshots/hotjar_1.jpg) |
+| Kliknięcia Feedback Button | Replay sesji użytkownika w aplikacji |
 
 ---
 
