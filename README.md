@@ -365,8 +365,8 @@ Główne widoki aplikacji — interfejs logowania, rozgrywka oraz ranking. Pokaz
 
 **Google Analytics dashboard screenshots** — raporty GA4 zintegrowane przez `react-ga4` i `AnalyticsListener`. Pokazują ruch na stronie, konwersje między trasami (`/game`, `/ranking` itd.) oraz zachowanie użytkowników w czasie rzeczywistym.
 
-| Dashboard | Realtime |
-|:---------:|:--------:|
+| Realtime |
+|:--------:|
 | ![Google Analytics — Realtime](docs/screenshots/google_analytics.jpg) |
 | Przegląd ruchu, źródła i zdarzenia, aktywni użytkownicy na żywo |
 
