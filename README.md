@@ -374,7 +374,7 @@ Główne widoki aplikacji — interfejs logowania, rozgrywka oraz ranking. Pokaz
 
 **Hotjar** — Ilustruje, gdzie użytkownicy klikają, jak scrollują ekran gry oraz jak przechodzą przez flow logowania i rozgrywki.
 
-| Heatmapy | Nagrania sesji |
+| Feedback Button | Session Replay |
 |:--------:|:--------------:|
 | ![Hotjar — Feedback Button](docs/screenshots/hotjar_2.jpg) | ![Hotjar — Session Replay](docs/screenshots/hotjar_1.jpg) |
 | Kliknięcia Feedback Button | Replay sesji użytkownika w aplikacji |
