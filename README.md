@@ -372,38 +372,12 @@ Główne widoki aplikacji — interfejs logowania, rozgrywka oraz ranking. Pokaz
 
 ### Hotjar Screenshots
 
-**Heatmaps / recordings / insights z Hotjar** — materiały z `@hotjar/browser` (oraz opcjonalnie Contentsquare UXA w `index.html`). Ilustrują, gdzie użytkownicy klikają, jak scrollują ekran gry oraz jak przechodzą przez flow logowania i rozgrywki.
+**Hotjar** — Ilustruje, gdzie użytkownicy klikają, jak scrollują ekran gry oraz jak przechodzą przez flow logowania i rozgrywki.
 
 | Heatmapy | Nagrania sesji |
 |:--------:|:--------------:|
-| ![Hotjar — heatmapy](docs/screenshots/hotjar-heatmaps.png) | ![Hotjar — nagrania](docs/screenshots/hotjar-recordings.png) |
-| Mapy kliknięć i scrollowania | Replay sesji użytkownika w aplikacji |
-
----
-
-## Roadmap
-
-- [ ] Uzupełnienie plików PNG w `docs/screenshots/` (patrz sekcja Documentation)
-- [ ] Rozszerzenie puli haseł i mapy semantycznej w `ranking.json`
-
----
-
-## Contributing
-
-Chcesz pomóc w rozwoju projektu?
-
-1. **Fork** repozytorium
-2. Utwórz branch: `git checkout -b feature/nazwa-funkcji`
-3. Wprowadź zmiany i przetestuj lokalnie (backend + frontend)
-4. Commit: `git commit -m "feat: krótki opis zmiany"`
-5. **Push** i otwórz **Pull Request**
-
-Przed PR uruchom linter frontendu:
-
-```bash
-cd app
-npm run lint
-```
+| ![Hotjar — Feedback Button](docs/screenshots/hotjar_2.jpg) | ![Hotjar — Session Replay](docs/screenshots/hotjar_1.jpg) |
+| Kliknięcia Feedback Button | Replay sesji użytkownika w aplikacji |
 
 ---
 
