@@ -374,7 +374,7 @@ Główne widoki aplikacji — interfejs logowania, rozgrywka oraz ranking. Pokaz
 
 **Hotjar** — Ilustruje, gdzie użytkownicy klikają, jak scrollują ekran gry oraz jak przechodzą przez flow logowania i rozgrywki.
 
-| Heatmapy | Nagrania sesji |
+| Feedback Button | Session Replay |
 |:--------:|:--------------:|
 | ![Hotjar — Feedback Button](docs/screenshots/hotjar_2.jpg) | ![Hotjar — Session Replay](docs/screenshots/hotjar_1.jpg) |
 | Kliknięcia Feedback Button | Replay sesji użytkownika w aplikacji |
@@ -416,5 +416,5 @@ Upewnij się, że jesteś w katalogu `server/`, wykonałeś `npm install` i port
 ---
 
 <p align="center">
-  <sub>Zbudowane z React, Express i Firebase · Demo: <a href="https://cieplozimno.vercel.app/login">cieplozimno.vercel.app</a></sub>
+  <sub>Zbudowane z React, Express i Firebase · Demo: <a href="https://cieplo-zimno.vercel.app/login">cieplozimno.vercel.app</a></sub>
 </p>
