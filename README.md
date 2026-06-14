@@ -367,8 +367,8 @@ Główne widoki aplikacji — interfejs logowania, rozgrywka oraz ranking. Pokaz
 
 | Dashboard | Realtime |
 |:---------:|:--------:|
-| ![Google Analytics — dashboard](docs/screenshots/ga-dashboard.png) | ![Google Analytics — Realtime](docs/screenshots/ga-realtime.png) |
-| Przegląd ruchu, źródła i zdarzenia | Aktywni użytkownicy na żywo |
+| ![Google Analytics — Realtime](docs/screenshots/google_analytics.jpg) |
+| Przegląd ruchu, źródła i zdarzenia, aktywni użytkownicy na żywo |
 
 ### Hotjar Screenshots
 
