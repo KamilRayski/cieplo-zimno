@@ -2,7 +2,7 @@
 
 > Codzienna gra słowna oparta na podobieństwie semantycznym — im bliżej znaczeniowo Twoje słowo, tym wyższa temperatura.
 
-[![Live Demo](https://img.shields.io/badge/demo-cieplozimno.vercel.app-FF6B35?style=for-the-badge)](https://cieplozimno.vercel.app/login)
+[![Live Demo](https://img.shields.io/badge/demo-cieplozimno.vercel.app-FF6B35?style=for-the-badge)](https://cieplo-zimno.vercel.app/login)
 
 ---
 
@@ -72,7 +72,7 @@ Każdego dnia wszyscy gracze otrzymują to samo słowo. Po wpisaniu propozycji s
 ### 1. Klonowanie repozytorium
 
 ```bash
-git clone https://github.com/<twoj-uzytkownik>/cieplo-zimno.git
+git clone https://github.com/KamilRayski/cieplo-zimno.git
 cd cieplo-zimno
 ```
 
@@ -102,7 +102,7 @@ Aplikacja frontendowa proxy'uje żądania `/api/*` do backendu dzięki konfigura
 
 ## Użycie
 
-1. Otwórz **http://localhost:5173** (lub [demo na Vercel](https://cieplozimno.vercel.app/login)).
+1. Otwórz **http://localhost:5173** (lub [demo na Vercel](https://cieplo-zimno.vercel.app/login)).
 2. Zarejestruj się lub zaloguj (Email/Password albo Google).
 3. Przejdź do ekranu **Gra** (`/game`) i wpisz pierwsze słowo.
 4. Obserwuj temperaturę odpowiedzi i dopasowuj kolejne strzały.
@@ -350,9 +350,40 @@ Ustaw zmienną `PORT` zgodnie z hostingiem. Frontend musi mieć dostęp do API (
 
 ---
 
+## Documentation / Screenshots
+
+### Application Screenshots
+
+Główne widoki aplikacji — interfejs logowania, rozgrywka oraz ranking. Pokazują layout, nawigację i kluczowe elementy UX projektu.
+
+| Logowanie | Gra | Ranking |
+|:---------:|:---:|:-------:|
+| ![Ekran logowania](docs/screenshots/app-login.jpg) | ![Ekran gry](docs/screenshots/app-game.jpg) | ![Ranking](docs/screenshots/app-ranking.jpg) |
+| Firebase Auth (Email/Password + Google) | Strzały z temperaturą i historią | Tablica liderów graczy |
+
+### Google Analytics Screenshots
+
+**Google Analytics dashboard screenshots** — raporty GA4 zintegrowane przez `react-ga4` i `AnalyticsListener`. Pokazują ruch na stronie, konwersje między trasami (`/game`, `/ranking` itd.) oraz zachowanie użytkowników w czasie rzeczywistym.
+
+| Dashboard | Realtime |
+|:---------:|:--------:|
+| ![Google Analytics — dashboard](docs/screenshots/ga-dashboard.png) | ![Google Analytics — Realtime](docs/screenshots/ga-realtime.png) |
+| Przegląd ruchu, źródła i zdarzenia | Aktywni użytkownicy na żywo |
+
+### Hotjar Screenshots
+
+**Heatmaps / recordings / insights z Hotjar** — materiały z `@hotjar/browser` (oraz opcjonalnie Contentsquare UXA w `index.html`). Ilustrują, gdzie użytkownicy klikają, jak scrollują ekran gry oraz jak przechodzą przez flow logowania i rozgrywki.
+
+| Heatmapy | Nagrania sesji |
+|:--------:|:--------------:|
+| ![Hotjar — heatmapy](docs/screenshots/hotjar-heatmaps.png) | ![Hotjar — nagrania](docs/screenshots/hotjar-recordings.png) |
+| Mapy kliknięć i scrollowania | Replay sesji użytkownika w aplikacji |
+
+---
+
 ## Roadmap
 
-- [ ] Zrzuty ekranu w `docs/screenshots/` (logowanie, gra, ranking, analityka)
+- [ ] Uzupełnienie plików PNG w `docs/screenshots/` (patrz sekcja Documentation)
 - [ ] Rozszerzenie puli haseł i mapy semantycznej w `ranking.json`
 
 ---
