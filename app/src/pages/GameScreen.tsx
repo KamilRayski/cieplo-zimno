@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { DotLottieReact, type DotLottie } from '@lottiefiles/dotlottie-react'
 import { apiRequest } from '../lib/api'
 import { formatTemperature, toneFromTemperature } from '../lib/format'
 import { getAuthSessionId, getSessionId, setSessionId } from '../lib/session'
@@ -20,36 +19,6 @@ export default function GameScreen() {
   const [error, setError] = useState<string | null>(null)
   const [isWon, setIsWon] = useState(false)
   const [isWonModalClosed, setIsWonModalClosed] = useState(false)
-  const [victoryIntroComplete, setVictoryIntroComplete] = useState(false)
-  const victoryIntroCleanupRef = useRef<(() => void) | null>(null)
-
-  const handleVictoryIntroPlayer = useCallback((dotLottie: DotLottie | null) => {
-    victoryIntroCleanupRef.current?.()
-    victoryIntroCleanupRef.current = null
-    if (!dotLottie) return
-
-    let finished = false
-    const finishIntro = () => {
-      if (finished) return
-      finished = true
-      setVictoryIntroComplete(true)
-    }
-
-    dotLottie.addEventListener('complete', finishIntro)
-    const fallbackTimer = window.setTimeout(finishIntro, 4000)
-
-    victoryIntroCleanupRef.current = () => {
-      dotLottie.removeEventListener('complete', finishIntro)
-      window.clearTimeout(fallbackTimer)
-    }
-  }, [])
-
-  useEffect(
-    () => () => {
-      victoryIntroCleanupRef.current?.()
-    },
-    [],
-  )
 
   const bestGuess = useMemo(() => {
     if (guesses.length === 0) return null
@@ -71,7 +40,6 @@ export default function GameScreen() {
 
   useEffect(() => {
     setIsWonModalClosed(false)
-    setVictoryIntroComplete(false)
     const loadGame = async () => {
       setStatus('loading')
       setError(null)
@@ -96,9 +64,6 @@ export default function GameScreen() {
         }
         setGuesses(payload.guesses)
         setIsWon(payload.isWon)
-        if (payload.isWon) {
-          setVictoryIntroComplete(true)
-        }
       } catch (loadError) {
         console.error(loadError)
         setError('Nie udało się załadować gry. Spróbuj ponownie.')
@@ -131,9 +96,6 @@ export default function GameScreen() {
         json: { sessionId, guess: trimmed, authSessionId },
       })
       setGuesses(payload.guesses)
-      if (payload.isWon) {
-        setVictoryIntroComplete(false)
-      }
       setIsWon(payload.isWon)
       setInput('')
     } catch (submitError) {
@@ -252,31 +214,9 @@ export default function GameScreen() {
         <div className="game-status">Ładuję grę...</div>
       ) : null}
       {error ? <div className="game-status game-status--error">{error}</div> : null}
-      {isWon && !victoryIntroComplete ? (
-        <div className="victory-intro-overlay">
-          <DotLottieReact
-            src="/flamefire.lottie"
-            autoplay
-            loop={false}
-            dotLottieRefCallback={handleVictoryIntroPlayer}
-            style={{ width: 'min(420px, 90vw)', height: 'min(420px, 90vw)' }}
-          />
-        </div>
-      ) : null}
-      {isWon && victoryIntroComplete && !isWonModalClosed ? (
+      {isWon && !isWonModalClosed ? (
         <div className="modal-overlay" style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0, 0, 0, 0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '16px' }}>
-          <div className="card victory-fire-card reveal" style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center', textAlign: 'center', padding: '32px 24px', maxWidth: '360px', width: '100%', position: 'relative' }}>
-            {/* Lottie Fire Player (placed behind card content) */}
-            <lottie-player
-              src="/src/assets/fire.json"
-              background="transparent"
-              speed="1"
-              style={{ position: 'absolute', top: '-15%', left: '-15%', width: '130%', height: '130%', zIndex: 1, pointerEvents: 'none' }}
-              loop
-              autoplay
-            />
-
-            {/* Close button in top right corner */}
+          <div className="card victory-card reveal" style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center', textAlign: 'center', padding: '32px 24px', maxWidth: '360px', width: '100%', position: 'relative' }}>
             <button
               onClick={() => setIsWonModalClosed(true)}
               style={{
@@ -297,18 +237,7 @@ export default function GameScreen() {
               ✕
             </button>
 
-            {/* Rising flame particles */}
-            <div className="flame-container">
-              <div className="flame-particle"></div>
-              <div className="flame-particle"></div>
-              <div className="flame-particle"></div>
-              <div className="flame-particle"></div>
-              <div className="flame-particle"></div>
-              <div className="flame-particle"></div>
-              <div className="flame-particle"></div>
-            </div>
-
-            <div style={{ fontSize: '22px', fontWeight: 'bold', color: '#ffb7a2', letterSpacing: '0.05em', textShadow: '0 0 10px #ff5a4f', zIndex: 2 }}>
+            <div style={{ fontSize: '22px', fontWeight: 'bold', color: '#ffb7a2', letterSpacing: '0.05em' }}>
               GRATULACJE!
             </div>
             <div style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.7)', zIndex: 2 }}>
